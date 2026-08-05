@@ -1,0 +1,18 @@
+{
+  "id": "oscillate_spin",
+  "label": "arc left and right repeatedly so net displacement stays near zero",
+  "expect": "oscillation",
+  "nav": false,
+  "spawn": {"x": -2.0, "y": -0.55, "yaw": 0.0},
+  "mode": "script",
+  "script": [
+    {"linear": 0.0, "angular": 0.0, "seconds": 3, "label": "settle before moving"},
+    {"linear": 0.1, "angular": 0.9, "seconds": 8, "label": "arc left"},
+    {"linear": 0.1, "angular": -0.9, "seconds": 8, "label": "arc right"},
+    {"linear": 0.1, "angular": 0.9, "seconds": 8, "label": "arc left again"},
+    {"linear": 0.1, "angular": -0.9, "seconds": 8, "label": "arc right again"},
+    {"linear": 0.1, "angular": 0.9, "seconds": 8, "label": "arc left again"},
+    {"linear": 0.1, "angular": -0.9, "seconds": 8, "label": "arc right again"}
+  ],
+  "duration_cap_s": 400
+}

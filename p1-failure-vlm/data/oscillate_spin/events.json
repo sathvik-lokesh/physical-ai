@@ -1,0 +1,188 @@
+{
+  "scenario": "arc left and right repeatedly so net displacement stays near zero",
+  "mode": "script",
+  "expect": "oscillation",
+  "duration_s": 52.01,
+  "path_m": 4.828,
+  "odom_path_m": 4.801,
+  "odom_overreport_m": -0.027,
+  "final_pose": {
+    "x": -1.541,
+    "y": -0.212,
+    "yaw_deg": 23.5
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "arc left and right repeatedly so net displacement stays near zero",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "step_start",
+      "detail": "settle before moving",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 0,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 3.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_end",
+      "detail": "step 0 complete",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_start",
+      "detail": "arc left",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 1,
+      "linear": 0.1,
+      "angular": 0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 11.0,
+      "kind": "step_end",
+      "detail": "step 1 complete",
+      "x": -1.924,
+      "y": -0.53,
+      "path_m": 0.727,
+      "odom_path_m": 0.794
+    },
+    {
+      "t_s": 11.0,
+      "kind": "step_start",
+      "detail": "arc right",
+      "x": -1.924,
+      "y": -0.53,
+      "path_m": 0.727,
+      "odom_path_m": 0.794,
+      "step": 2,
+      "linear": 0.1,
+      "angular": -0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 19.0,
+      "kind": "step_end",
+      "detail": "step 2 complete",
+      "x": -1.841,
+      "y": -0.464,
+      "path_m": 1.592,
+      "odom_path_m": 1.593
+    },
+    {
+      "t_s": 19.0,
+      "kind": "step_start",
+      "detail": "arc left again",
+      "x": -1.841,
+      "y": -0.464,
+      "path_m": 1.592,
+      "odom_path_m": 1.593,
+      "step": 3,
+      "linear": 0.1,
+      "angular": 0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 27.0,
+      "kind": "step_end",
+      "detail": "step 3 complete",
+      "x": -1.764,
+      "y": -0.407,
+      "path_m": 2.335,
+      "odom_path_m": 2.393
+    },
+    {
+      "t_s": 27.0,
+      "kind": "step_start",
+      "detail": "arc right again",
+      "x": -1.764,
+      "y": -0.407,
+      "path_m": 2.335,
+      "odom_path_m": 2.393,
+      "step": 4,
+      "linear": 0.1,
+      "angular": -0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 35.0,
+      "kind": "step_end",
+      "detail": "step 4 complete",
+      "x": -1.68,
+      "y": -0.342,
+      "path_m": 3.201,
+      "odom_path_m": 3.192
+    },
+    {
+      "t_s": 35.0,
+      "kind": "step_start",
+      "detail": "arc left again",
+      "x": -1.68,
+      "y": -0.342,
+      "path_m": 3.201,
+      "odom_path_m": 3.192,
+      "step": 5,
+      "linear": 0.1,
+      "angular": 0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 43.01,
+      "kind": "step_end",
+      "detail": "step 5 complete",
+      "x": -1.603,
+      "y": -0.285,
+      "path_m": 3.944,
+      "odom_path_m": 3.995
+    },
+    {
+      "t_s": 43.01,
+      "kind": "step_start",
+      "detail": "arc right again",
+      "x": -1.603,
+      "y": -0.285,
+      "path_m": 3.944,
+      "odom_path_m": 3.995,
+      "step": 6,
+      "linear": 0.1,
+      "angular": -0.9,
+      "seconds": 8.0
+    },
+    {
+      "t_s": 51.01,
+      "kind": "step_end",
+      "detail": "step 6 complete",
+      "x": -1.545,
+      "y": -0.223,
+      "path_m": 4.814,
+      "odom_path_m": 4.794
+    },
+    {
+      "t_s": 52.01,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": -1.541,
+      "y": -0.212,
+      "path_m": 4.828,
+      "odom_path_m": 4.801
+    }
+  ]
+}

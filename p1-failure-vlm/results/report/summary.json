@@ -1,0 +1,122 @@
+{
+  "llava-phi3 / failure_grounded": {
+    "model": "llava-phi3",
+    "task": "failure_grounded",
+    "n_rows": 32,
+    "n_errors": 0,
+    "n_scored": 32,
+    "fields": {
+      "failed": {
+        "n": 32,
+        "answered": 32,
+        "coverage": 1.0,
+        "correct": 18,
+        "strict_accuracy": 0.562,
+        "answered_accuracy": 0.562,
+        "majority_label": "True",
+        "majority_accuracy": 0.594,
+        "lift_over_majority": -0.032,
+        "confusion": {
+          "False": {
+            "True": 6,
+            "False": 7
+          },
+          "True": {
+            "True": 11,
+            "False": 8
+          }
+        }
+      },
+      "failure_mode": {
+        "n": 32,
+        "answered": 32,
+        "coverage": 1.0,
+        "correct": 10,
+        "strict_accuracy": 0.312,
+        "answered_accuracy": 0.312,
+        "majority_label": "none",
+        "majority_accuracy": 0.406,
+        "lift_over_majority": -0.094,
+        "confusion": {
+          "none": {
+            "oscillation": 9,
+            "stuck": 4
+          },
+          "oscillation": {
+            "stuck": 2,
+            "oscillation": 10
+          },
+          "stuck": {
+            "oscillation": 7
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 32,
+      "mean_s": 110.9,
+      "median_s": 145.5,
+      "p90_s": 152.3,
+      "total_min": 59.1
+    }
+  },
+  "llava-phi3 / failure_visual": {
+    "model": "llava-phi3",
+    "task": "failure_visual",
+    "n_rows": 32,
+    "n_errors": 0,
+    "n_scored": 32,
+    "fields": {
+      "failed": {
+        "n": 32,
+        "answered": 32,
+        "coverage": 1.0,
+        "correct": 13,
+        "strict_accuracy": 0.406,
+        "answered_accuracy": 0.406,
+        "majority_label": "True",
+        "majority_accuracy": 0.594,
+        "lift_over_majority": -0.188,
+        "confusion": {
+          "False": {
+            "False": 13
+          },
+          "True": {
+            "False": 19
+          }
+        }
+      },
+      "failure_mode": {
+        "n": 32,
+        "answered": 32,
+        "coverage": 1.0,
+        "correct": 13,
+        "strict_accuracy": 0.406,
+        "answered_accuracy": 0.406,
+        "majority_label": "none",
+        "majority_accuracy": 0.406,
+        "lift_over_majority": 0.0,
+        "confusion": {
+          "none": {
+            "oscillation": 6,
+            "none": 7
+          },
+          "oscillation": {
+            "oscillation": 6,
+            "none": 6
+          },
+          "stuck": {
+            "none": 7
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 32,
+      "mean_s": 102.0,
+      "median_s": 139.2,
+      "p90_s": 145.0,
+      "total_min": 54.4
+    }
+  }
+}
