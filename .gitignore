@@ -1,0 +1,9 @@
+# Rollout bags are large (25–60 MB each) and fully regenerable from the
+# scenario JSON via harness/recorder/record.py. Keyframes, manifests and events
+# are kept — they are the actual inputs to evaluation and are small.
+p*/data/*/bag/
+p*/data/*/logs/
+
+__pycache__/
+*.pyc
+.venv/

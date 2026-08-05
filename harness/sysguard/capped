@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Run any command under a hard CPU and memory ceiling.
+#
+# This machine is an 8.41 GB, 4C/8T, 15 W laptop with no GPU. An uncapped batch
+# job does not merely run slowly here — it starves Windows and wedges the whole
+# box. cgroup v2 + systemd are present, so the ceiling can be a real one rather
+# than a promise.
+#
+#   ./capped ./run_eval.sh                 # defaults: 3G, 5 of 8 threads
+#   MEM=2G CPU=300% ./capped python foo.py
+#   NICE=0 ./capped ...                    # foreground work you're waiting on
+#
+# On memory exhaustion the job is killed by the kernel, not swapped forever —
+# that is the point. Every runner in this repo is resumable, so a kill costs
+# one item.
+
+set -euo pipefail
+
+MEM="${MEM:-3G}"
+CPU="${CPU:-500%}"
+NICE="${NICE:-19}"
+
+if [ $# -eq 0 ]; then
+    sed -n '2,17p' "$0" | sed 's/^# \?//'
+    exit 1
+fi
+
+if ! command -v systemd-run >/dev/null 2>&1; then
+    echo "sysguard: systemd-run not found — running uncapped, watch memory yourself" >&2
+    exec nice -n "$NICE" "$@"
+fi
+
+# --user --scope keeps the job in this terminal (output stays attached, Ctrl-C
+# still reaches it) while placing it in its own cgroup.
+exec systemd-run --user --scope --quiet \
+    --description="physical-ai capped job" \
+    -p "MemoryMax=$MEM" \
+    -p "MemorySwapMax=$MEM" \
+    -p "CPUQuota=$CPU" \
+    nice -n "$NICE" "$@"

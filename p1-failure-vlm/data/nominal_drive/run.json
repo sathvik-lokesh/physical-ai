@@ -1,0 +1,33 @@
+{
+  "run_id": "nominal_drive",
+  "status": "completed",
+  "scenario": {
+    "id": "nominal_drive",
+    "label": "drive down an open lane without hitting anything",
+    "expect": "none",
+    "nav": false,
+    "spawn": {
+      "x": -2.0,
+      "y": -0.55,
+      "yaw": 0.0
+    },
+    "mode": "script",
+    "script": [
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 3,
+        "label": "settle before moving"
+      },
+      {
+        "linear": 0.12,
+        "angular": 0.0,
+        "seconds": 25,
+        "label": "drive up the clear lane between the y=-1.1 and y=0 cylinder rows"
+      }
+    ],
+    "duration_cap_s": 300
+  },
+  "bag": "/home/sathv/Hanuman/physical-ai/p1-failure-vlm/data/nominal_drive/bag",
+  "recorded_at": "2026-08-04T22:58:37"
+}

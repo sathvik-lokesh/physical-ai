@@ -1,0 +1,78 @@
+{
+  "scenario": "drive down an open lane without hitting anything",
+  "mode": "script",
+  "expect": "none",
+  "duration_s": 29.0,
+  "path_m": 3.0,
+  "odom_path_m": 3.0,
+  "odom_overreport_m": -0.0,
+  "final_pose": {
+    "x": 0.999,
+    "y": -0.55,
+    "yaw_deg": -0.0
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "drive down an open lane without hitting anything",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "step_start",
+      "detail": "settle before moving",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 0,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 3.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_end",
+      "detail": "step 0 complete",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_start",
+      "detail": "drive up the clear lane between the y=-1.1 and y=0 cylinder rows",
+      "x": -2.001,
+      "y": -0.55,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 1,
+      "linear": 0.12,
+      "angular": 0.0,
+      "seconds": 25.0
+    },
+    {
+      "t_s": 28.0,
+      "kind": "step_end",
+      "detail": "step 1 complete",
+      "x": 0.988,
+      "y": -0.55,
+      "path_m": 2.988,
+      "odom_path_m": 2.989
+    },
+    {
+      "t_s": 29.0,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": 0.999,
+      "y": -0.55,
+      "path_m": 3.0,
+      "odom_path_m": 3.0
+    }
+  ]
+}

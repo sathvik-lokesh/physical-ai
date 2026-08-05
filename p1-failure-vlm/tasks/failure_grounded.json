@@ -1,0 +1,11 @@
+{
+  "name": "failure_grounded",
+  "json_mode": true,
+  "num_predict": 200,
+  "prompt": "This is the forward-facing camera view from a small indoor mobile robot driving across a room.\n\nTelemetry at this moment:\n- commanded forward speed: {cmd_linear_x} m/s\n- commanded turn rate: {cmd_angular_z} rad/s\n- distance actually travelled so far: {path_m} m\n- time since the run started: {t_s} s\n\nUsing BOTH the image and the telemetry, is the robot in trouble?\n\nAnswer with these exact categories:\n- \"none\": it is making normal progress\n- \"stuck\": it is being commanded to move but is not moving\n- \"oscillation\": it is moving but not getting anywhere\n- \"goal_unreachable\": the way ahead is fully closed off\n\nRespond as JSON: {\"failed\": true or false, \"failure_mode\": \"one of the categories above\", \"reason\": \"one short sentence\"}",
+  "fields": {
+    "failed": {"type": "bool"},
+    "failure_mode": {"type": "enum", "values": ["none", "stuck", "oscillation", "goal_unreachable"]},
+    "reason": {"type": "str"}
+  }
+}
