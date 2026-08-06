@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  `tb3_wall`, lit at roughly a third of the brightness. Geometry, spawn and
+  drive script are byte-identical to the bright run, so anything that differs
+  between the two is attributable to lighting alone.
+
+  Lighting is listed as a limitation of the first p1 result ("simulated,
+  untextured scenes"), and it is the cheapest scene variable to change. A model
+  whose failure is a perception failure should get worse here; a model that is
+  ignoring the image and answering from a prior should not care.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)" light_diffuse="0.3 0.3 0.3 1"/>
+    <xacro:slab name="stall_wall" x="-0.85" y="-0.5"/>
+  </world>
+</sdf>
