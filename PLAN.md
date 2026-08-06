@@ -8,32 +8,51 @@ see the RESUME POINT below, `harness/README.md` and `p1-failure-vlm/README.md`.*
 
 ## RESUME POINT (start here)
 
-**Status (2026-08-05):** Phase 0 harness built and verified. **Phase 1 has a
-complete, honest result** — recorded, labelled, evaluated, scored and written up in
-`p1-failure-vlm/README.md`.
+**Status (2026-08-06):** Phase 0 harness built and verified. **Phase 1 is complete and
+its `stuck` claim has now been hardened** — 9 rollouts, 103 labelled keyframes, 206
+evaluations, 0 errors, written up in `p1-failure-vlm/README.md`. Run
+`python3 p1-failure-vlm/verify_readme_numbers.py` (29 checks) after touching the data;
+it re-derives every number the README quotes.
 
-**Phase 1 headline:** `llava-phi3` scored **at or below the always-guess-the-commonest-label
-baseline in every configuration** (lift −18.8, ±0.0, −3.2, −9.4 points). It identified
-`stuck` **0 times out of 7** under both prompts, despite those frames being entirely
-filled by a wall, and instead answered `oscillation` with the fluent reasoning "the robot
-is moving but not getting anywhere" about a completely motionless robot. Parse coverage
-was 100%, so this is a discrimination failure, not a formatting one. Adding telemetry
-flipped the bias from never-fails to always-fails without adding discrimination.
+**Phase 1 headline:** `llava-phi3` scores **below the always-guess-the-commonest-label
+baseline in all four configurations** (lift −30.0, −26.2, −33.0, −41.7 points). It named
+`stuck` **once in 110 attempts** — 0/55 from the image, 1/55 with telemetry — across
+7 rollouts, 4 obstacle geometries, 2 lighting levels and 2 approach angles. Parse
+coverage was 100%, so this is discrimination, not formatting. Worse: **71% of grounded
+answers contradict themselves**, setting `failed: false` while naming a failure mode,
+typically `{"failed": false, "failure_mode": "oscillation", "reason": "The robot is
+moving but not getting anywhere"}` about a robot pinned motionless against a wall.
 
 This matches MV-RoboBench (2026). The contribution is the harness that makes it
 measurable: ground truth that cannot be gamed, a trivial baseline printed beside every
-number, and resumable overnight CPU evaluation.
+number, duplicate frames counted honestly, and resumable overnight CPU evaluation.
+
+**Two findings from hardening the claim, both in `p1-failure-vlm/README.md`:**
+- **A contact frame carries almost no information, and different scenes converge to the
+  same one.** At the stall the camera is ~5 cm out and its 60° FOV spans ~6 cm, so any
+  larger obstacle fills it. Four rollouts built to differ in approach angle, obstacle
+  shape and lighting produced **30 byte-identical frames**. Approach does not vary a
+  stall frame; only the obstacle's height and width do. Hence `stuck_gap` (slot),
+  `stuck_wall_edge` (half-blocked) and `stuck_kerb` (0.06 m kerb below the frame — robot
+  pinned, image shows a clear room). Every frame now carries a `pixel_sha1` and
+  `scoring/score.py` prints a duplicate-weighted accuracy: 103 frames are 51 images, and
+  the 55 `stuck` frames are only **15**.
+- **The oscillation labeller was wrong** and only a short rollout exposed it: a straight
+  0.43 m run satisfied the "stayed in a 0.40 m patch while covering 0.35 m" test, because
+  a straight line's extent is half its path. Fixed with a path/extent shape test
+  (oscillation 6.6–12.0, straight lines 1.2–2.3). The three pre-existing runs re-label
+  byte-for-byte identically, so the earlier published numbers were unaffected.
 
 **Next actions, in order:**
-1. **Strengthen the `stuck` claim before repeating it.** The 7 stuck frames are one robot
-   in one pose imaged 7 times — not 7 independent trials. Record more `stuck` rollouts at
-   varied approach angles and obstacles. This is the single biggest weakness in p1.
-2. Run `moondream` and `bakllava` for a cross-model comparison:
+1. Run `moondream` and `bakllava` for a cross-model comparison:
    `MODELS="moondream bakllava" ./run_eval.sh` (the harness already supports it).
-3. A prompt-sensitivity pass — currently "these two prompts fail", not "the model cannot".
-4. Add the two Nav2 scenarios (`nav_goal_ok`, `nav_goal_blocked`); everything so far is
-   open-loop `script` mode, so Nav2 is installed but never exercised.
-5. Then Phase 2 (`p2-semantic-slam`), which reuses the recorder unchanged.
+   Budget ~5.5 h per model — that is what `llava-phi3` took for 206 items.
+2. A prompt-sensitivity pass — currently "these two prompts fail", not "the model cannot".
+   Worth targeting the self-contradiction directly: ask for one field, not two.
+3. Add the two Nav2 scenarios (`nav_goal_ok`, `nav_goal_blocked`); everything so far is
+   open-loop `script` mode, so Nav2 is installed but never exercised, and
+   `goal_unreachable`/`localisation_loss` have no data at all.
+4. Then Phase 2 (`p2-semantic-slam`), which reuses the recorder unchanged.
 
 **Findings that changed the plan (see `harness/README.md` for detail):**
 - **Headless camera rendering works with no GPU.** `gz sim -s --headless-rendering`

@@ -16,6 +16,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -180,6 +181,17 @@ def extract(args) -> int:
         name = f"kf{idx:04d}.png"
         PILImage.fromarray(arr).save(frames_dir / name)
 
+        # Hash the pixels, not the PNG, so re-encoding cannot change the answer.
+        #
+        # A stalled robot in a static scene renders the same image every time,
+        # and — measured across four `stuck` rollouts that varied approach angle,
+        # obstacle shape and lighting — so does a *different* rollout that ends
+        # pressed against a flat surface: 30 of those frames were byte-identical
+        # to each other. Without this field a class can look like thirty trials
+        # while being one picture, and every accuracy over it is really the score
+        # on a single image. Scoring uses it to weight duplicates down.
+        pixel_sha1 = hashlib.sha1(arr.tobytes()).hexdigest()
+
         x, y, yaw = last_odom if last_odom else (None, None, None)
         gx, gy, gyaw_v = last_gt if last_gt else (None, None, None)
         manifest.append(
@@ -190,6 +202,7 @@ def extract(args) -> int:
                     "run_id": args.run_id or bag_path.name,
                     "frame": idx,
                     "t_s": round(rel_t, 2),
+                    "pixel_sha1": pixel_sha1,
                     "x": round(x, 3) if x is not None else None,
                     "y": round(y, 3) if y is not None else None,
                     "yaw_deg": round(math.degrees(yaw), 1) if yaw is not None else None,
@@ -216,10 +229,12 @@ def extract(args) -> int:
             f.write(json.dumps(item) + "\n")
 
     duration = manifest[-1]["meta"]["t_s"]
+    n_distinct = len({it["meta"]["pixel_sha1"] for it in manifest})
     print(
         f"bag       : {bag_path}\n"
         f"images    : {n_images} on {args.image_topic}\n"
         f"keyframes : {len(manifest)} (every {args.every_m} m, stall timeout {args.stall_s}s)\n"
+        f"distinct  : {n_distinct} of {len(manifest)} keyframes are pixel-unique\n"
         f"duration  : {duration}s\n"
         f"path      : {gt_path_length:.2f} m true"
         + (f", {path_length:.2f} m by wheel odometry "

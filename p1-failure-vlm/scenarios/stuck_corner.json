@@ -1,0 +1,15 @@
+{
+  "id": "stuck_corner",
+  "label": "drive into a V-shaped funnel and wedge in the corner",
+  "expect": "stuck",
+  "nav": false,
+  "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_corner.sdf.xacro",
+  "spawn": {"x": -2.0, "y": -0.5, "yaw": 0.0},
+  "mode": "script",
+  "script": [
+    {"linear": 0.0, "angular": 0.0, "seconds": 3, "label": "settle before moving"},
+    {"linear": 0.15, "angular": 0.0, "seconds": 45,
+     "label": "drive forward into the funnel (~6 s to wedge) and keep pushing"}
+  ],
+  "duration_cap_s": 400
+}

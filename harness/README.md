@@ -57,6 +57,16 @@ Measured while building this, not assumed:
   do not run anything else during Phase B.
 - **Model quality tracks `edge-vlm-bench`.** On the same scene-classification
   smoke test, `llava-phi3` answered correctly where `moondream` did not.
+- **A close-up contact frame carries almost no scene information, and different
+  scenes converge to the same image.** The camera ends ~5 cm from whatever
+  stopped the robot, where its 60° horizontal FOV spans about 6 cm of the
+  obstacle. Four `stuck` rollouts built to differ — head-on wall, 26° oblique
+  wall, V-funnel, and the same wall at a third of the light — produced **30
+  byte-identical stall frames**. Varying the approach does not vary the frame;
+  only the obstacle's *height and width relative to the FOV at contact* does.
+  This is why `extract_keyframes.py` records a `pixel_sha1` per frame and
+  `scoring/score.py` reports a duplicate-weighted accuracy beside the raw one.
+  Without them a class reads as thirty trials while being one picture.
 
 ## Usage
 
@@ -86,6 +96,13 @@ Sampling is **by distance travelled** (default every 0.5 m), not by time, with a
 stall timeout (default 5 s) so a stuck robot still contributes frames. Sampling
 on a clock would fill the manifest with thousands of identical frames and spend
 hours of VLM time re-answering the same question.
+
+Distance sampling still cannot help a robot that has stopped: the stall timeout
+exists precisely to keep emitting frames of a motionless robot, and those frames
+are identical to each other. Each manifest entry therefore carries a
+`pixel_sha1` of the decoded image, and the summary line reports how many
+keyframes are pixel-unique — for a stalled run that is typically 3 of 11. Treat
+the distinct count, not the frame count, as the sample size.
 
 ### Phase B — run the VLM (background this)
 
@@ -117,15 +134,25 @@ python -m scoring.score \
 ```
 
 Ground truth lives in the manifest's per-item `gt` block, so it never touches
-the prompt path. Two accuracies are reported and **the gap between them is the
-finding**:
+the prompt path. Three accuracies are reported and **the gaps between them are
+the finding**:
 
 - `strict` — correct / all items. Unparseable answers count as wrong. This is
   the number for a README.
 - `answered` — correct / items where the field was actually produced.
+- `distinct` — `strict` with every pixel-identical image weighted to 1 in total,
+  printed whenever duplicates exist.
 
 A model that is *wrong* and a model that is *unintelligible* fail differently,
-and only reporting `strict` hides which one you have.
+and only reporting `strict` hides which one you have. Likewise a model scored
+over 55 frames that are 15 pictures has been measured on 15 things, and only
+`distinct` says so. Every accuracy is printed beside the accuracy of always
+guessing the commonest label, weighted the same way — a constant predictor
+should never be able to look like a result.
+
+Pass one concatenated manifest (`cat data/*/manifest.jsonl`) rather than scoring
+run by run: duplicate frames are shared *between* runs, so per-run scoring
+cannot see them.
 
 ## Task specs
 

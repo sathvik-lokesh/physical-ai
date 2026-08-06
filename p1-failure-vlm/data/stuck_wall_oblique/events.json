@@ -1,0 +1,88 @@
+{
+  "scenario": "approach the same flat wall at 26 degrees and stall against it",
+  "mode": "script",
+  "expect": "stuck",
+  "duration_s": 49.0,
+  "path_m": 1.758,
+  "odom_path_m": 6.75,
+  "odom_overreport_m": 4.992,
+  "final_pose": {
+    "x": -0.997,
+    "y": -0.297,
+    "yaw_deg": -0.0
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "approach the same flat wall at 26 degrees and stall against it",
+      "x": -2.257,
+      "y": -0.931,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "step_start",
+      "detail": "settle before moving",
+      "x": -2.257,
+      "y": -0.931,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 0,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 3.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_end",
+      "detail": "step 0 complete",
+      "x": -2.275,
+      "y": -0.895,
+      "path_m": 0.04,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 3.0,
+      "kind": "step_start",
+      "detail": "drive forward into the wall (~9 s to contact) and keep pushing",
+      "x": -2.275,
+      "y": -0.895,
+      "path_m": 0.04,
+      "odom_path_m": 0.0,
+      "step": 1,
+      "linear": 0.15,
+      "angular": 0.0,
+      "seconds": 45.0
+    },
+    {
+      "t_s": 22.11,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 0.6 cm in 6.0 s",
+      "x": -0.998,
+      "y": -0.303,
+      "path_m": 1.67,
+      "odom_path_m": 2.853,
+      "moved_cm": 0.6
+    },
+    {
+      "t_s": 48.0,
+      "kind": "step_end",
+      "detail": "step 1 complete",
+      "x": -0.997,
+      "y": -0.297,
+      "path_m": 1.758,
+      "odom_path_m": 6.736
+    },
+    {
+      "t_s": 49.0,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": -0.997,
+      "y": -0.297,
+      "path_m": 1.758,
+      "odom_path_m": 6.75
+    }
+  ]
+}

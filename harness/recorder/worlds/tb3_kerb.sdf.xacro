@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+  tb3_sandbox plus a kerb too low for the camera to see.
+
+  The point of this scene is that the stall is invisible. At contact the camera
+  sits ~5 cm from the obstacle with its optical centre 0.157 m up and a 46.8 deg
+  vertical FOV, so the bottom of the frame is at z = 0.157 - 0.433 d — about
+  0.135 m at contact. A 0.06 m kerb is entirely beneath that, and the floor it
+  occludes only enters the frame from 0.22 m out, past the kerb's far edge. The
+  robot is therefore pinned while the image shows clear floor and open scenery.
+
+  0.06 m is chosen against the hardware: the waffle's wheels are 0.033 m in
+  radius so they cannot climb it, and the base collision box's underside sits at
+  z = 0.0035 so the body fouls it squarely. It stalls, it just does not appear.
+
+  This is the scene the two prompts should disagree on. `failure_visual` has no
+  honest way to answer `stuck` here; `failure_grounded` is handed the telemetry
+  that gives it away. Any model scoring well on this one from the image alone is
+  guessing, and any model scoring badly on it is not necessarily wrong.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)"/>
+    <xacro:slab name="stall_kerb" x="-0.85" y="-0.5" height="0.06"/>
+  </world>
+</sdf>

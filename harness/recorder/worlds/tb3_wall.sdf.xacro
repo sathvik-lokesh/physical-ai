@@ -1,120 +1,18 @@
 <?xml version="1.0"?>
+<!--
+  tb3_sandbox plus one flat slab across the lane.
+
+  A robot spawned at (-2.0, -0.5) facing +x meets it head-on after about 1 m.
+  This is the original `stuck` scene; `tb3_corner`, `tb3_gap` and `tb3_wall_dim`
+  vary the obstacle around it so the class rests on more than one situation.
+-->
 <sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:arg name="headless" default="true"/>
+  <!-- relative includes resolve against this file's directory, not the cwd -->
+  <xacro:include filename="tb3_base.xacro"/>
 
   <world name="default">
-    <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
-    </plugin>
-    <plugin
-      filename="gz-sim-user-commands-system"
-      name="gz::sim::systems::UserCommands">
-    </plugin>
-  <xacro:unless value="$(arg headless)">
-    <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
-    </plugin>
-  </xacro:unless>
-    <plugin
-      filename="gz-sim-sensors-system"
-      name="gz::sim::systems::Sensors">
-      <render_engine>ogre2</render_engine>
-    </plugin>
-    <plugin
-      filename="gz-sim-imu-system"
-      name="gz::sim::systems::Imu">
-    </plugin>
-
-    <light name='sun' type='directional'>
-        <cast_shadows>0</cast_shadows>
-        <pose>0 0 10 0 0 0</pose>
-        <diffuse>0.8 0.8 0.8 1</diffuse>
-        <specular>0.8 0.8 0.8 1</specular>
-        <attenuation>
-            <range>1000</range>
-            <constant>0.9</constant>
-            <linear>0.01</linear>
-            <quadratic>0.001</quadratic>
-        </attenuation>
-        <direction>-0.5 0.1 -0.9</direction>
-    </light>
-    <model name='ground_plane'>
-        <static>1</static>
-        <link name='link'>
-            <collision name='collision'>
-                <geometry>
-                    <plane>
-                        <normal>0 0 1</normal>
-                        <size>100 100</size>
-                    </plane>
-                </geometry>
-                <max_contacts>10</max_contacts>
-            </collision>
-            <visual name='visual'>
-                <geometry>
-                    <plane>
-                        <normal>0 0 1</normal>
-                        <size>100 100</size>
-                    </plane>
-                </geometry>
-                <material>
-                    <ambient>0.8 0.8 0.8 1</ambient>
-                    <diffuse>0.8 0.8 0.8 1</diffuse>
-                    <specular>0.8 0.8 0.8 1</specular>
-                </material>
-            </visual>
-        </link>
-    </model>
-
-    <scene>
-      <shadows>0</shadows>
-    </scene>
-
-    <physics name='3ms' type='ode'>
-        <max_step_size>0.003</max_step_size>
-        <real_time_factor>1</real_time_factor>
-    </physics>
-
-    <model name="turtlebot3_world">
-      <static>1</static>
-      <include>
-        <uri>model://turtlebot3_world</uri>
-      </include>
-    </model>
-
-    <!-- ADDED (this world is tb3_sandbox plus the wall below).
-
-         The stock sandbox is nine cylinders in a 3x3 grid at
-         (x,y) in {-1.1, 0, 1.1}^2. A robot driven at them glances off the
-         curved surface and scrubs sideways instead of wedging: the `stuck_wall`
-         scenario ended 7.8 m along a deflected path at yaw 143 deg, never once
-         tripping the stall test. Round obstacles cannot produce a reliable stall.
-
-         This is a flat slab across the lane at y = -0.5, which a robot spawned
-         at (-2.0, -0.5) facing +x meets head-on after ~1 m. Flat and static, so
-         contact is a genuine stall rather than a deflection. -->
-    <model name="stall_wall">
-      <static>true</static>
-      <pose>-0.85 -0.5 0.25 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <box><size>0.15 1.4 0.5</size></box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box><size>0.15 1.4 0.5</size></box>
-          </geometry>
-          <material>
-            <ambient>0.75 0.25 0.2 1</ambient>
-            <diffuse>0.75 0.25 0.2 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
-
+    <xacro:tb3_base_world headless="$(arg headless)"/>
+    <xacro:slab name="stall_wall" x="-0.85" y="-0.5"/>
   </world>
 </sdf>

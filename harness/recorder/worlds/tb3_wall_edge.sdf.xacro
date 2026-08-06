@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+  tb3_sandbox plus a wall the robot clips with only half its face.
+
+  The intermediate case between `tb3_wall` (view entirely blocked) and
+  `tb3_kerb` (view entirely clear). The slab's near edge is placed at y = -0.547
+  so that it runs straight down the middle of the camera's optical axis: at
+  contact the ~6 cm wide frame is half obstacle and half open scene.
+
+  Whether this stalls at all is a genuine question — contact is off-centre, so
+  the robot yaws about it rather than meeting the wall square. If it slips past,
+  that is the scenario's answer and it gets reported as one, not relabelled.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)"/>
+    <!-- length 1.4 centred at y=0.153 puts the near edge at y=-0.547 -->
+    <xacro:slab name="stall_wall_edge" x="-0.85" y="0.153"/>
+  </world>
+</sdf>

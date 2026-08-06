@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!--
+  The parts every rollout world shares: plugins, sun, ground plane, physics and
+  the stock `turtlebot3_world` scenery.
+
+  This exists because the `stuck` class needs several *different* scenes. The
+  first result rested on one rollout, so its seven stuck frames were the same
+  robot in the same pose imaged seven times rather than seven trials. Varying
+  the obstacle means several worlds, and several worlds sharing ninety lines of
+  copy-pasted boilerplate is how they silently drift apart — a lighting or
+  physics difference between two worlds would show up as a difference in the
+  model's scores and be read as a finding.
+
+  Every world here therefore calls `tb3_base_world` and adds only its own
+  obstacles. The one knob is `light_diffuse`, because lighting is a scene
+  variable worth changing deliberately.
+
+  Usage:
+      <xacro:include filename="$(find ...)/tb3_base.xacro"/>   (or a relative path)
+      <world name="default">
+        <xacro:tb3_base_world headless="$(arg headless)"/>
+        ...obstacles...
+      </world>
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="tb3_base_world" params="headless light_diffuse:='0.8 0.8 0.8 1'">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+  <xacro:unless value="${headless}">
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+  </xacro:unless>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+
+    <light name='sun' type='directional'>
+        <cast_shadows>0</cast_shadows>
+        <pose>0 0 10 0 0 0</pose>
+        <diffuse>${light_diffuse}</diffuse>
+        <specular>${light_diffuse}</specular>
+        <attenuation>
+            <range>1000</range>
+            <constant>0.9</constant>
+            <linear>0.01</linear>
+            <quadratic>0.001</quadratic>
+        </attenuation>
+        <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name='ground_plane'>
+        <static>1</static>
+        <link name='link'>
+            <collision name='collision'>
+                <geometry>
+                    <plane>
+                        <normal>0 0 1</normal>
+                        <size>100 100</size>
+                    </plane>
+                </geometry>
+                <max_contacts>10</max_contacts>
+            </collision>
+            <visual name='visual'>
+                <geometry>
+                    <plane>
+                        <normal>0 0 1</normal>
+                        <size>100 100</size>
+                    </plane>
+                </geometry>
+                <material>
+                    <ambient>0.8 0.8 0.8 1</ambient>
+                    <diffuse>0.8 0.8 0.8 1</diffuse>
+                    <specular>0.8 0.8 0.8 1</specular>
+                </material>
+            </visual>
+        </link>
+    </model>
+
+    <scene>
+      <shadows>0</shadows>
+    </scene>
+
+    <physics name='3ms' type='ode'>
+        <max_step_size>0.003</max_step_size>
+        <real_time_factor>1</real_time_factor>
+    </physics>
+
+    <model name="turtlebot3_world">
+      <static>1</static>
+      <include>
+        <uri>model://turtlebot3_world</uri>
+      </include>
+    </model>
+  </xacro:macro>
+
+  <!--
+    A flat static slab. Round obstacles cannot produce a reliable stall: the
+    stock sandbox's nine cylinders deflect a robot into a curved scrub, and the
+    first attempt at `stuck_wall` ended 7.8 m along a deflected path at yaw
+    143 deg without ever tripping the stall test. Flat faces wedge.
+
+    Sizes are chosen against the waffle's 0.265 x 0.265 m base collision box.
+  -->
+  <xacro:macro name="slab" params="name x y yaw:=0 length:=1.4 thickness:=0.15 height:=0.5">
+    <model name="${name}">
+      <static>true</static>
+      <pose>${x} ${y} ${height / 2} 0 0 ${yaw}</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>${thickness} ${length} ${height}</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>${thickness} ${length} ${height}</size></box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.25 0.2 1</ambient>
+            <diffuse>0.75 0.25 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </xacro:macro>
+
+</robot>

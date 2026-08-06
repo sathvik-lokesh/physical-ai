@@ -7,13 +7,26 @@ touches the prompt path:
     {"id": "run01_kf07", "image": "...", "meta": {...},
      "gt": {"failed": true, "failure_mode": "stuck"}}
 
-Two accuracies are reported on purpose, and the gap between them is the finding:
+Three accuracies are reported on purpose, and the gaps between them are the
+finding:
 
   strict   — correct / all items with ground truth. Unparseable answers count
              as wrong. This is the number that belongs in a README.
   answered — correct / items where the model actually produced the field.
              Comparing it to strict tells you whether a model is *wrong* or
              merely *unintelligible*, which are different failure modes.
+  distinct — strict, but every pixel-identical image counts once in total
+             instead of once per frame.
+
+That last one exists because a stalled robot in a static scene renders the same
+picture over and over, and two different rollouts that both end against a flat
+surface render *the same picture as each other*: across four `stuck` rollouts
+that deliberately varied approach angle, obstacle shape and lighting, 30 frames
+turned out to be byte-identical. Plain accuracy over that set is the score on
+one image, reported to two decimal places as though it were thirty trials.
+Weighting each duplicate group to a total of 1 says how many situations the
+model actually got right. The majority baseline is weighted identically, so the
+comparison stays like-for-like.
 
 Usage:
     python -m scoring.score --manifest data/run01/manifest.jsonl \
@@ -54,9 +67,15 @@ def normalize(value):
 
 def score(manifest_path: Path, result_paths: list[Path]) -> dict:
     gt_by_id = {}
+    sha_by_id = {}
     for item in load_jsonl(manifest_path):
         if item.get("gt"):
             gt_by_id[item["id"]] = item["gt"]
+        # Manifests written before pixel hashing simply get one group per item,
+        # which reduces the distinct-weighted numbers to the strict ones.
+        sha_by_id[item["id"]] = (item.get("meta") or {}).get(
+            "pixel_sha1", f"__unhashed__{item['id']}"
+        )
     if not gt_by_id:
         raise SystemExit(f"{manifest_path}: no items carry a 'gt' block — nothing to score")
 
@@ -107,7 +126,7 @@ def score(manifest_path: Path, result_paths: list[Path]) -> dict:
                     stats["correct"] += 1
             else:
                 predicted = None
-            stats["pairs"].append((truth, predicted))
+            stats["pairs"].append((truth, predicted, sha_by_id.get(row["id"], row["id"])))
 
     # Collapse tallies into final numbers
     for entry in report.values():
@@ -127,6 +146,7 @@ def score(manifest_path: Path, result_paths: list[Path]) -> dict:
         for field, s in entry["fields"].items():
             majority, majority_acc = _majority_baseline(s["pairs"])
             strict = round(s["correct"] / s["n"], 3) if s["n"] else 0.0
+            dist = _distinct_weighted(s["pairs"])
             fields[field] = {
                 "n": s["n"],
                 "answered": s["answered"],
@@ -142,6 +162,14 @@ def score(manifest_path: Path, result_paths: list[Path]) -> dict:
                 "majority_label": majority,
                 "majority_accuracy": majority_acc,
                 "lift_over_majority": round(strict - majority_acc, 3),
+                # ...and only interesting if it got distinct *situations* right,
+                # not one picture many times over.
+                "n_distinct_images": dist["n_distinct"],
+                "distinct_accuracy": dist["accuracy"],
+                "distinct_majority_accuracy": dist["majority_accuracy"],
+                "distinct_lift_over_majority": round(
+                    dist["accuracy"] - dist["majority_accuracy"], 3
+                ),
                 "confusion": _confusion(s["pairs"]),
             }
         entry["fields"] = fields
@@ -150,20 +178,49 @@ def score(manifest_path: Path, result_paths: list[Path]) -> dict:
 
 def _majority_baseline(pairs: list[tuple]) -> tuple[str, float]:
     """Accuracy of always predicting the commonest ground-truth label."""
-    truths = Counter(str(t) for t, _ in pairs)
+    truths = Counter(str(t) for t, _, _ in pairs)
     if not truths:
         return "", 0.0
     label, count = truths.most_common(1)[0]
     return label, round(count / sum(truths.values()), 3)
 
 
+def _distinct_weighted(pairs: list[tuple]) -> dict:
+    """
+    The same accuracy with each pixel-identical image weighted to 1 in total.
+
+    Duplicates are shared *across* runs, not just within one, so this cannot be
+    done per run — it has to be a single pass over everything being scored.
+    A group of k copies contributes weight 1/k each, so a group the model splits
+    (different answers to the same image under different telemetry) contributes
+    the fraction it got right, and the totals stay interpretable as "situations".
+    """
+    if not pairs:
+        return {"n_distinct": 0, "accuracy": 0.0, "majority_accuracy": 0.0}
+
+    sizes = Counter(key for _, _, key in pairs)
+    total = float(len(sizes))
+    correct = 0.0
+    by_label: Counter = Counter()
+    for truth, predicted, key in pairs:
+        w = 1.0 / sizes[key]
+        by_label[str(truth)] += w
+        if predicted is not None and normalize(predicted) == normalize(truth):
+            correct += w
+    return {
+        "n_distinct": len(sizes),
+        "accuracy": round(correct / total, 3),
+        "majority_accuracy": round(max(by_label.values()) / total, 3),
+    }
+
+
 def _confusion(pairs: list[tuple]) -> dict | None:
     """gt -> {predicted -> count}, only for small label sets (enums and bools)."""
-    labels = {str(t) for t, _ in pairs} | {str(p) for _, p in pairs if p is not None}
+    labels = {str(t) for t, _, _ in pairs} | {str(p) for _, p, _ in pairs if p is not None}
     if len(labels) > 8:
         return None  # free-text field; a confusion matrix would be noise
     matrix: dict[str, Counter] = defaultdict(Counter)
-    for truth, predicted in pairs:
+    for truth, predicted, _ in pairs:
         matrix[str(truth)][str(predicted) if predicted is not None else "<no answer>"] += 1
     return {k: dict(v) for k, v in matrix.items()}
 
@@ -196,6 +253,14 @@ def print_report(report: dict) -> None:
                 f"{s['majority_accuracy']:.1%}  ->  {verdict} baseline by "
                 f"{lift:+.1%}"
             )
+            if s["n_distinct_images"] < s["n"]:
+                dlift = s["distinct_lift_over_majority"]
+                dverdict = "BEATS" if dlift > 0 else ("ties" if dlift == 0 else "BELOW")
+                print(
+                    f"  {'':<16} over {s['n_distinct_images']} DISTINCT images "
+                    f"(of {s['n']} frames): {s['distinct_accuracy']:.1%} vs baseline "
+                    f"{s['distinct_majority_accuracy']:.1%}  ->  {dverdict} by {dlift:+.1%}"
+                )
             if s["confusion"]:
                 for truth, preds in sorted(s["confusion"].items()):
                     shown = ", ".join(f"{p}×{c}" for p, c in sorted(preds.items()))

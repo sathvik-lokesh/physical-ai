@@ -1,0 +1,34 @@
+{
+  "run_id": "stuck_wall_dim",
+  "status": "completed",
+  "scenario": {
+    "id": "stuck_wall_dim",
+    "label": "the stuck_wall rollout again under a third of the light",
+    "expect": "stuck",
+    "nav": false,
+    "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_wall_dim.sdf.xacro",
+    "spawn": {
+      "x": -2.0,
+      "y": -0.5,
+      "yaw": 0.0
+    },
+    "mode": "script",
+    "script": [
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 3,
+        "label": "settle before moving"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 45,
+        "label": "drive forward into the wall (~7 s to contact) and keep pushing"
+      }
+    ],
+    "duration_cap_s": 400
+  },
+  "bag": "/home/sathv/Hanuman/physical-ai/p1-failure-vlm/data/stuck_wall_dim/bag",
+  "recorded_at": "2026-08-05T21:02:54"
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  tb3_sandbox plus a V-shaped funnel that wedges the robot.
+
+  Different mechanics from `tb3_wall` on purpose. A flat wall stalls a robot by
+  opposing it; a funnel stalls it by *converging* on it, so the robot jams
+  harder the longer it pushes and cannot scrub sideways out of contact. It also
+  looks different from the camera: two angled surfaces meeting at an apex,
+  rather than one plane filling the frame.
+
+  Arms are 1.2 m at +-30 deg off the lane, apex at (-0.75, -0.5). A robot
+  spawned at (-2.0, -0.5) facing +x enters a 1.2 m mouth and wedges where the
+  funnel narrows to its 0.265 m base width, around x = -1.1.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)"/>
+    <xacro:slab name="funnel_left"  x="-1.27" y="-0.20" yaw="${radians(60)}"  length="1.2"/>
+    <xacro:slab name="funnel_right" x="-1.27" y="-0.80" yaw="${radians(120)}" length="1.2"/>
+  </world>
+</sdf>

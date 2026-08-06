@@ -1,0 +1,34 @@
+{
+  "run_id": "stuck_kerb",
+  "status": "completed",
+  "scenario": {
+    "id": "stuck_kerb",
+    "label": "stall on a kerb too low for the camera to see",
+    "expect": "stuck",
+    "nav": false,
+    "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_kerb.sdf.xacro",
+    "spawn": {
+      "x": -2.0,
+      "y": -0.5,
+      "yaw": 0.0
+    },
+    "mode": "script",
+    "script": [
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 3,
+        "label": "settle before moving"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 45,
+        "label": "drive forward into the unseen kerb (~7 s to contact) and keep pushing"
+      }
+    ],
+    "duration_cap_s": 400
+  },
+  "bag": "/home/sathv/Hanuman/physical-ai/p1-failure-vlm/data/stuck_kerb/bag",
+  "recorded_at": "2026-08-05T21:09:39"
+}

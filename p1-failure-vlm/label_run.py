@@ -35,7 +35,26 @@ from pathlib import Path
 # out of 11 on a run whose net displacement over the whole rollout was 5 cm.
 OSC_WINDOW_S = 20.0      # look this far either side of a frame
 OSC_MIN_PATH_M = 0.35    # it has to actually be moving...
-OSC_MAX_RADIUS_M = 0.40  # ...while staying inside a small patch of floor
+OSC_MAX_RADIUS_M = 0.40  # ...while staying inside a small patch of floor...
+OSC_MIN_PATH_PER_EXTENT = 3.0  # ...and doubling back, not going straight
+
+# That last ratio is the one that makes this a shape test rather than a size
+# test, and it was added after `stuck_gap` exposed the gap. The extent cap alone
+# labelled three frames of a robot that drove 0.43 m in a dead-straight line and
+# stopped, because a straight run's extent is only ever about half its path
+# length, so any straight run shorter than ~0.8 m fits inside a 0.40 m patch.
+# The earlier scenarios all travelled further than that and hid the bug.
+#
+# Measured over all seven runs the two populations are nowhere near each other:
+#
+#     genuine oscillation (oscillate_spin)   path/extent  6.6 - 12.0
+#     straight lines (every other run)       path/extent  1.2 -  2.3
+#
+# so 3.0 sits in a wide empty band rather than being tuned to a boundary case.
+# The extent cap is kept as well: both conditions must hold, which is the
+# conservative direction for ground truth. Re-labelling the three pre-existing
+# runs with this rule reproduces their old labels exactly, so the published
+# results are unaffected.
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -68,7 +87,9 @@ def is_oscillating(items: list[dict], i: int) -> bool:
 
     Measures path length travelled against the *spatial extent* of the window —
     the furthest any sample strays from the window's centroid — rather than the
-    displacement between its first and last sample.
+    displacement between its first and last sample. The decisive test is their
+    ratio: covering several times more ground than the patch you covered it in
+    is what doubling back means, and a straight line cannot fake it.
 
     Endpoint displacement was tried first and is phase-sensitive: on a robot
     arcing left then right, two samples 20 s apart can sit at opposite ends of an
@@ -96,7 +117,11 @@ def is_oscillating(items: list[dict], i: int) -> bool:
     cx = sum(m["gt_x"] for m in window) / len(window)
     cy = sum(m["gt_y"] for m in window) / len(window)
     radius = max(math.hypot(m["gt_x"] - cx, m["gt_y"] - cy) for m in window)
-    return path >= OSC_MIN_PATH_M and radius <= OSC_MAX_RADIUS_M
+    if path < OSC_MIN_PATH_M or radius > OSC_MAX_RADIUS_M:
+        return False
+    # A pinned robot has zero extent and near-zero path; MIN_PATH has already
+    # excluded it, so anything reaching here has moved and radius is meaningful.
+    return radius > 0 and path / radius >= OSC_MIN_PATH_PER_EXTENT
 
 
 def label_run(run_dir: Path, dry_run: bool = False) -> dict:

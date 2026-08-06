@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+  tb3_sandbox plus a slot too narrow to drive through.
+
+  The third distinct stall mechanism, and the visually hardest of the three:
+  unlike a wall or a funnel, the scene ahead is not blocked. The camera sees a
+  20 cm strip of open floor and the rest of the world beyond it, with an
+  obstacle only in the periphery. If a VLM is reading "obstacle fills frame"
+  rather than reasoning about whether the robot can proceed, this is the scene
+  that separates the two.
+
+  The slot is 0.20 m between the inner faces. The waffle's base collision box is
+  0.265 m wide and its wheels span 0.306 m, so it cannot pass on any heading. A
+  robot spawned at (-2.0, -0.5) facing +x meets the block ends after ~0.4 m.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)"/>
+    <!-- yaw=90 turns each slab's long axis along the lane, so its 0.15 m
+         thickness sets the slot width: inner faces at y=-0.40 and y=-0.60. -->
+    <xacro:slab name="gap_left"  x="-0.90" y="-0.325" yaw="${radians(90)}" length="1.2"/>
+    <xacro:slab name="gap_right" x="-0.90" y="-0.675" yaw="${radians(90)}" length="1.2"/>
+  </world>
+</sdf>
