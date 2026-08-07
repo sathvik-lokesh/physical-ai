@@ -65,7 +65,30 @@ def normalize(value):
     return value
 
 
-def score(manifest_path: Path, result_paths: list[Path]) -> dict:
+def task_fields(task_dir: Path | None, task_name: str) -> set[str] | None:
+    """
+    Which fields a task actually asked for, or None if we cannot tell.
+
+    Without this, "the task never requested this field" and "the model could
+    never produce this field" render identically in the report — both as 0%
+    coverage. They are opposite findings. A single-field prompt legitimately
+    emits no `failed`, while moondream failing to emit `failure_mode` on 309
+    attempts is the entire result for that model.
+    """
+    if task_dir is None:
+        return None
+    spec = task_dir / f"{task_name}.json"
+    if not spec.exists():
+        return None
+    try:
+        return set(json.loads(spec.read_text()).get("fields", {}))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def score(
+    manifest_path: Path, result_paths: list[Path], task_dir: Path | None = None
+) -> dict:
     gt_by_id = {}
     sha_by_id = {}
     for item in load_jsonl(manifest_path):
@@ -116,7 +139,10 @@ def score(manifest_path: Path, result_paths: list[Path]) -> dict:
         entry["n_scored"] += 1
         parsed = row.get("parsed") or {}
 
+        asked = task_fields(task_dir, row.get("task", ""))
         for field, truth in gt.items():
+            if asked is not None and field not in asked:
+                continue  # this task never requested it; scoring it would be a lie
             stats = entry["fields"][field]
             stats["n"] += 1
             if field in parsed:
@@ -329,10 +355,17 @@ def main():
     p.add_argument("--manifest", required=True)
     p.add_argument("--results", required=True, nargs="+")
     p.add_argument("--out", default=None, help="dir for summary.json + charts")
+    p.add_argument("--task-dir", default=None,
+                   help="dir of task specs; lets the report distinguish 'the task "
+                        "never asked for this field' from 'the model could not produce it'")
     p.add_argument("--no-charts", action="store_true")
     args = p.parse_args()
 
-    report = score(Path(args.manifest), [Path(r) for r in args.results])
+    report = score(
+        Path(args.manifest),
+        [Path(r) for r in args.results],
+        Path(args.task_dir) if args.task_dir else None,
+    )
     print_report(report)
 
     if args.out:

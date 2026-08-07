@@ -48,8 +48,12 @@ def main() -> int:
     if not gt or not rows:
         raise SystemExit("no labelled manifests or no results — nothing to verify")
 
-    visual = [r for r in rows if r["task"] == "failure_visual"]
-    grounded = [r for r in rows if r["task"] == "failure_grounded"]
+    # The llava-phi3 numbers are the body of the README; the other two models
+    # are a separate section and are checked separately below.
+    visual = [r for r in rows if r["task"] == "failure_visual" and r["model"] == "llava-phi3"]
+    grounded = [r for r in rows if r["task"] == "failure_grounded" and r["model"] == "llava-phi3"]
+    moon = [r for r in rows if r["model"] == "moondream"]
+    bak = [r for r in rows if r["model"] == "bakllava"]
 
     def ans(row, field):
         return (row.get("parsed") or {}).get(field)
@@ -84,10 +88,11 @@ def main() -> int:
         # dataset shape
         ("rollouts", len({run[i] for i in gt}), 9),
         ("labelled keyframes", len(gt), 103),
-        ("evaluations", len(rows), 206),
+        ("llava-phi3 evaluations", len(visual) + len(grounded), 206),
         ("errors", sum(1 for r in rows if r.get("error")), 0),
-        ("answers missing a field", sum(
-            1 for r in rows for f in ("failed", "failure_mode") if ans(r, f) is None), 0),
+        ("llava-phi3 answers missing a field", sum(
+            1 for r in visual + grounded
+            for f in ("failed", "failure_mode") if ans(r, f) is None), 0),
         ("distinct images overall", len(set(sha.values())), 51),
         ("stuck rollouts", len({run[i] for i in stuck_ids}), 7),
         ("stuck frames", len(stuck_ids), 55),
@@ -117,7 +122,54 @@ def main() -> int:
         # determinism
         ("duplicate images given differing answers", sum(
             1 for s in by_image.values() if len(s) > 1), 0),
+        # --- the cross-model section: three models, three constants ---
+        ("moondream ever answered failed=false", sum(
+            1 for r in moon if ans(r, "failed") is False), 0),
+        ("moondream: both prompts identical per frame", sorted(
+            (r["id"], json.dumps(r.get("parsed"), sort_keys=True))
+            for r in moon if r["task"] == "failure_visual"
+        ) == sorted(
+            (r["id"], json.dumps(r.get("parsed"), sort_keys=True))
+            for r in moon if r["task"] == "failure_grounded"
+        ), True),
+        ("bakllava evaluations (partial — run killed)", len(bak), 84),
+        ("bakllava ever answered failed=false", sum(
+            1 for r in bak if ans(r, "failed") is False), 0),
+        ("bakllava mode answers produced", sum(
+            1 for r in bak if ans(r, "failure_mode") is not None), 72),
+        ("bakllava mode answers that were `stuck`", sum(
+            1 for r in bak if ans(r, "failure_mode") == "stuck"), 72),
+        ("bakllava stuck recall numerator", sum(
+            1 for r in bak if ans(r, "failure_mode") == "stuck"
+            and gt[r["id"]]["failure_mode"] == "stuck"), 32),
+        ("bakllava stuck frames seen", sum(
+            1 for r in bak if gt[r["id"]]["failure_mode"] == "stuck"), 41),
+        # --- prompt sensitivity: one dropped field swings stuck recall 0 -> 55 ---
+        ("moondream attempts across all prompts", len(moon), 309),
+        ("moondream ever produced a mode, incl. mode_only", sum(
+            1 for r in moon if ans(r, "failure_mode") is not None), 0),
     ]
+
+    for task, n_stuck, n_answered_stuck, n_none, n_osc in (
+        # task,        stuck recall, times it answered `stuck`, none recall, osc recall
+        ("mode_only",   55, 86, 1, 5),
+        ("mode_hinted", 55, 103, 0, 0),
+    ):
+        sel = [r for r in rows if r["model"] == "llava-phi3" and r["task"] == task]
+        checks += [
+            (f"{task}: evaluations", len(sel), 103),
+            (f"{task}: stuck recall", sum(
+                1 for r in sel if gt[r["id"]]["failure_mode"] == "stuck"
+                and ans(r, "failure_mode") == "stuck"), n_stuck),
+            (f"{task}: answered `stuck`", sum(
+                1 for r in sel if ans(r, "failure_mode") == "stuck"), n_answered_stuck),
+            (f"{task}: none recall", sum(
+                1 for r in sel if gt[r["id"]]["failure_mode"] == "none"
+                and ans(r, "failure_mode") == "none"), n_none),
+            (f"{task}: oscillation recall", sum(
+                1 for r in sel if gt[r["id"]]["failure_mode"] == "oscillation"
+                and ans(r, "failure_mode") == "oscillation"), n_osc),
+        ]
 
     # Per-scenario stuck recall, exactly as tabulated in the README.
     for scenario, n_frames in (

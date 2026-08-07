@@ -18,6 +18,15 @@ MODELS="${MODELS:-llava-phi3}"
 TASKS="${TASKS:-failure_visual failure_grounded}"
 RUNS="${RUNS:-$(find data -mindepth 1 -maxdepth 1 -type d | sort)}"
 
+# Per-request ceiling. The runner's own default is 900 s, chosen so a cold model
+# load cannot be mistaken for a hang. That is far too generous once a model's
+# p90 is known: `bakllava` (4.7 GB on an 8.41 GB box) drove this machine to
+# 144 MB free and pinned four cores for hours without completing an item, and a
+# 900 s ceiling x 3 retries meant nothing was written for a whole night.
+# Set this to a few times the model's measured p90 instead — llava-phi3's is
+# 145 s, moondream's 93 s — so a wedged item is abandoned and the batch moves on.
+TIMEOUT="${TIMEOUT:-600}"
+
 export OLLAMA_MAX_LOADED_MODELS=1
 export OLLAMA_NUM_PARALLEL=1
 # vlmrunner/ and scoring/ live in the shared harness, not in this project
@@ -57,6 +66,7 @@ for model in $MODELS; do
                 --manifest "$run/manifest.jsonl" \
                 --task "tasks/${task}.json" \
                 --model "$model" \
+                --timeout "$TIMEOUT" \
                 --out "$out" || {
                     echo "runner exited non-zero for $out — rerun to resume" >&2
                 }

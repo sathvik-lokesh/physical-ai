@@ -1,0 +1,9 @@
+{
+  "name": "mode_hinted",
+  "json_mode": true,
+  "num_predict": 60,
+  "prompt": "This is the forward-facing camera view from a small indoor mobile robot that is trying to drive across a room. The camera is mounted low at the front of the robot, a few centimetres behind its front bumper.\n\nJudging ONLY from what you can see in this image, choose exactly one of these categories. Each one is described by how it LOOKS from this camera:\n- \"stuck\": the view is blocked at very close range. A flat surface fills most or all of the frame, or an object sits immediately in front of the lens. There is no visible floor to drive onto.\n- \"none\": open floor is visible ahead with room to drive into. Objects may be present but they are at a distance.\n- \"oscillation\": open floor is visible, but the view is swung far to one side, as if the robot were rotating in place rather than advancing.\n- \"goal_unreachable\": the way ahead is completely walled off across the full width of the view, at a distance rather than up close.\n\nIf a surface is so close that you cannot tell what it is, that is \"stuck\".\n\nRespond as JSON with one key: {\"failure_mode\": \"one of the categories above\"}",
+  "fields": {
+    "failure_mode": {"type": "enum", "values": ["none", "stuck", "oscillation", "goal_unreachable"]}
+  }
+}
