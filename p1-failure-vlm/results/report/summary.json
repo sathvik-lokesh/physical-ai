@@ -70,6 +70,139 @@
       "total_min": 186.3
     }
   },
+  "moondream / failure_grounded": {
+    "model": "moondream",
+    "task": "failure_grounded",
+    "n_rows": 103,
+    "n_errors": 0,
+    "n_scored": 103,
+    "fields": {
+      "failed": {
+        "n": 103,
+        "answered": 103,
+        "coverage": 1.0,
+        "correct": 67,
+        "strict_accuracy": 0.65,
+        "answered_accuracy": 0.65,
+        "majority_label": "True",
+        "majority_accuracy": 0.65,
+        "lift_over_majority": 0.0,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.512,
+        "distinct_majority_accuracy": 0.512,
+        "distinct_lift_over_majority": 0.0,
+        "confusion": {
+          "False": {
+            "True": 36
+          },
+          "True": {
+            "True": 67
+          }
+        }
+      },
+      "failure_mode": {
+        "n": 103,
+        "answered": 0,
+        "coverage": 0.0,
+        "correct": 0,
+        "strict_accuracy": 0.0,
+        "answered_accuracy": 0.0,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.534,
+        "lift_over_majority": -0.534,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.0,
+        "distinct_majority_accuracy": 0.488,
+        "distinct_lift_over_majority": -0.488,
+        "confusion": {
+          "none": {
+            "<no answer>": 36
+          },
+          "oscillation": {
+            "<no answer>": 12
+          },
+          "stuck": {
+            "<no answer>": 55
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 103,
+      "mean_s": 56.4,
+      "median_s": 89.6,
+      "p90_s": 92.2,
+      "total_min": 96.8
+    }
+  },
+  "bakllava / failure_visual": {
+    "model": "bakllava",
+    "task": "failure_visual",
+    "n_rows": 84,
+    "n_errors": 0,
+    "n_scored": 84,
+    "fields": {
+      "failed": {
+        "n": 84,
+        "answered": 84,
+        "coverage": 1.0,
+        "correct": 53,
+        "strict_accuracy": 0.631,
+        "answered_accuracy": 0.631,
+        "majority_label": "True",
+        "majority_accuracy": 0.631,
+        "lift_over_majority": 0.0,
+        "n_distinct_images": 41,
+        "distinct_accuracy": 0.491,
+        "distinct_majority_accuracy": 0.509,
+        "distinct_lift_over_majority": -0.018,
+        "confusion": {
+          "False": {
+            "True": 31
+          },
+          "True": {
+            "True": 53
+          }
+        }
+      },
+      "failure_mode": {
+        "n": 84,
+        "answered": 72,
+        "coverage": 0.857,
+        "correct": 32,
+        "strict_accuracy": 0.381,
+        "answered_accuracy": 0.444,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.488,
+        "lift_over_majority": -0.107,
+        "n_distinct_images": 41,
+        "distinct_accuracy": 0.071,
+        "distinct_majority_accuracy": 0.509,
+        "distinct_lift_over_majority": -0.438,
+        "confusion": {
+          "none": {
+            "stuck": 29,
+            "<no answer>": 2
+          },
+          "oscillation": {
+            "stuck": 11,
+            "<no answer>": 1
+          },
+          "stuck": {
+            "stuck": 32,
+            "<no answer>": 9
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 84,
+      "mean_s": 185.4,
+      "median_s": 288.2,
+      "p90_s": 356.3,
+      "total_min": 259.6
+    }
+  },
   "llava-phi3 / failure_visual": {
     "model": "llava-phi3",
     "task": "failure_visual",
@@ -136,6 +269,200 @@
       "median_s": 125.4,
       "p90_s": 145.5,
       "total_min": 146.4
+    }
+  },
+  "moondream / failure_visual": {
+    "model": "moondream",
+    "task": "failure_visual",
+    "n_rows": 103,
+    "n_errors": 0,
+    "n_scored": 103,
+    "fields": {
+      "failed": {
+        "n": 103,
+        "answered": 103,
+        "coverage": 1.0,
+        "correct": 67,
+        "strict_accuracy": 0.65,
+        "answered_accuracy": 0.65,
+        "majority_label": "True",
+        "majority_accuracy": 0.65,
+        "lift_over_majority": 0.0,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.512,
+        "distinct_majority_accuracy": 0.512,
+        "distinct_lift_over_majority": 0.0,
+        "confusion": {
+          "False": {
+            "True": 36
+          },
+          "True": {
+            "True": 67
+          }
+        }
+      },
+      "failure_mode": {
+        "n": 103,
+        "answered": 0,
+        "coverage": 0.0,
+        "correct": 0,
+        "strict_accuracy": 0.0,
+        "answered_accuracy": 0.0,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.534,
+        "lift_over_majority": -0.534,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.0,
+        "distinct_majority_accuracy": 0.488,
+        "distinct_lift_over_majority": -0.488,
+        "confusion": {
+          "none": {
+            "<no answer>": 36
+          },
+          "oscillation": {
+            "<no answer>": 12
+          },
+          "stuck": {
+            "<no answer>": 55
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 103,
+      "mean_s": 49.7,
+      "median_s": 51.4,
+      "p90_s": 93.3,
+      "total_min": 85.3
+    }
+  },
+  "llava-phi3 / mode_hinted": {
+    "model": "llava-phi3",
+    "task": "mode_hinted",
+    "n_rows": 103,
+    "n_errors": 0,
+    "n_scored": 103,
+    "fields": {
+      "failure_mode": {
+        "n": 103,
+        "answered": 103,
+        "coverage": 1.0,
+        "correct": 55,
+        "strict_accuracy": 0.534,
+        "answered_accuracy": 0.534,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.534,
+        "lift_over_majority": 0.0,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.292,
+        "distinct_majority_accuracy": 0.488,
+        "distinct_lift_over_majority": -0.196,
+        "confusion": {
+          "none": {
+            "stuck": 36
+          },
+          "oscillation": {
+            "stuck": 12
+          },
+          "stuck": {
+            "stuck": 55
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 103,
+      "mean_s": 102.2,
+      "median_s": 160.8,
+      "p90_s": 206.1,
+      "total_min": 175.4
+    }
+  },
+  "llava-phi3 / mode_only": {
+    "model": "llava-phi3",
+    "task": "mode_only",
+    "n_rows": 103,
+    "n_errors": 0,
+    "n_scored": 103,
+    "fields": {
+      "failure_mode": {
+        "n": 103,
+        "answered": 103,
+        "coverage": 1.0,
+        "correct": 61,
+        "strict_accuracy": 0.592,
+        "answered_accuracy": 0.592,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.534,
+        "lift_over_majority": 0.058,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.394,
+        "distinct_majority_accuracy": 0.488,
+        "distinct_lift_over_majority": -0.094,
+        "confusion": {
+          "none": {
+            "oscillation": 11,
+            "stuck": 24,
+            "none": 1
+          },
+          "oscillation": {
+            "oscillation": 5,
+            "stuck": 7
+          },
+          "stuck": {
+            "stuck": 55
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 103,
+      "mean_s": 78.6,
+      "median_s": 97.2,
+      "p90_s": 159.0,
+      "total_min": 134.9
+    }
+  },
+  "moondream / mode_only": {
+    "model": "moondream",
+    "task": "mode_only",
+    "n_rows": 103,
+    "n_errors": 0,
+    "n_scored": 103,
+    "fields": {
+      "failure_mode": {
+        "n": 103,
+        "answered": 0,
+        "coverage": 0.0,
+        "correct": 0,
+        "strict_accuracy": 0.0,
+        "answered_accuracy": 0.0,
+        "majority_label": "stuck",
+        "majority_accuracy": 0.534,
+        "lift_over_majority": -0.534,
+        "n_distinct_images": 51,
+        "distinct_accuracy": 0.0,
+        "distinct_majority_accuracy": 0.488,
+        "distinct_lift_over_majority": -0.488,
+        "confusion": {
+          "none": {
+            "<no answer>": 36
+          },
+          "oscillation": {
+            "<no answer>": 12
+          },
+          "stuck": {
+            "<no answer>": 55
+          }
+        }
+      }
+    },
+    "latency": {
+      "n": 103,
+      "mean_s": 49.8,
+      "median_s": 81.8,
+      "p90_s": 89.6,
+      "total_min": 85.6
     }
   }
 }

@@ -1,0 +1,9 @@
+{
+  "name": "mode_only",
+  "json_mode": true,
+  "num_predict": 60,
+  "prompt": "This is the forward-facing camera view from a small indoor mobile robot that is trying to drive across a room.\n\nJudging ONLY from what you can see in this image, choose exactly one of these categories:\n- \"none\": the path ahead is clear and the robot can keep driving\n- \"stuck\": an obstacle or wall is directly against the robot, blocking it\n- \"oscillation\": the robot appears to be turning in place or facing a direction that makes no progress\n- \"goal_unreachable\": the way ahead is fully closed off\n\nRespond as JSON with one key: {\"failure_mode\": \"one of the categories above\"}",
+  "fields": {
+    "failure_mode": {"type": "enum", "values": ["none", "stuck", "oscillation", "goal_unreachable"]}
+  }
+}
