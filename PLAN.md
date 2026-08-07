@@ -43,12 +43,17 @@ number, duplicate frames counted honestly, and resumable overnight CPU evaluatio
   (oscillation 6.6–12.0, straight lines 1.2–2.3). The three pre-existing runs re-label
   byte-for-byte identically, so the earlier published numbers were unaffected.
 
+**Cross-model and prompt-sensitivity passes are now DONE (2026-08-07, commit `e2270bc`).**
+4 prompts x 3 models. All three models collapse to a constant answer and none beats the
+baseline per distinct image. Two near-miss headlines were caught by the duplicate
+weighting and are recorded in `p1-failure-vlm/README.md`. `bakllava` does not fit this
+machine (5.5 GB resident on 8.41 GB, killed at 84/103) and should not be retried here.
+
 **Next actions, in order:**
-1. Run `moondream` and `bakllava` for a cross-model comparison:
-   `MODELS="moondream bakllava" ./run_eval.sh` (the harness already supports it).
-   Budget ~5.5 h per model — that is what `llava-phi3` took for 206 items.
-2. A prompt-sensitivity pass — currently "these two prompts fail", not "the model cannot".
-   Worth targeting the self-contradiction directly: ask for one field, not two.
+1. **Push to GitHub.** The repo is local-only with no remote. This is the single thing
+   standing between p1 and being usable in an application, and it is ~10 minutes.
+2. LinkedIn writeup. The honest hook is the two traps the harness caught, not the
+   negative result itself.
 3. Add the two Nav2 scenarios (`nav_goal_ok`, `nav_goal_blocked`); everything so far is
    open-loop `script` mode, so Nav2 is installed but never exercised, and
    `goal_unreachable`/`localisation_loss` have no data at all.
