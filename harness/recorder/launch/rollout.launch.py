@@ -34,7 +34,8 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration
+from launch.substitutions import (AndSubstitution, Command, FindExecutable,
+                                  LaunchConfiguration, NotSubstitution)
 from launch_ros.actions import Node
 
 HERE = Path(__file__).resolve().parent
@@ -80,6 +81,20 @@ def generate_launch_description():
             description="world file (xacro or sdf)",
         ),
         DeclareLaunchArgument("nav", default_value="true", description="also bring up Nav2"),
+        # Build the map instead of localising in a prebuilt one. The thing that
+        # must never happen is slam_toolbox and AMCL running together: both
+        # publish map->odom, and two publishers on one transform do not error,
+        # they tear the map silently. So the combinations are:
+        #
+        #   nav=false slam=false   bare sim (p1 drives /cmd_vel open-loop)
+        #   nav=false slam=true    sim + standalone slam_toolbox (p2 mapping run)
+        #   nav=true  slam=false   Nav2 with AMCL against a prebuilt map
+        #   nav=true  slam=true    Nav2 in SLAM mode; nav2_bringup runs
+        #                          slam_toolbox itself and skips AMCL, so the
+        #                          standalone node below must stand down
+        DeclareLaunchArgument("slam", default_value="false",
+                              description="build a map with slam_toolbox instead of "
+                                          "localising with AMCL"),
         DeclareLaunchArgument("x_pose", default_value="-2.00"),
         DeclareLaunchArgument("y_pose", default_value="-0.50"),
         DeclareLaunchArgument("yaw", default_value="0.00"),
@@ -186,14 +201,44 @@ def generate_launch_description():
             "use_sim_time": "True",
             "params_file": LaunchConfiguration("params_file"),
             "autostart": "True",
-            "use_composition": "True",
+            # False, deliberately. With composition Nav2 starts one container
+            # and loads AMCL, map_server and the planners into it over a
+            # service. On this box that load never completed: the container came
+            # up, no nodes appeared inside it, and the run hung waiting for
+            # amcl/get_state forever. Separate processes cost more RAM and start
+            # slower, but they actually start.
+            "use_composition": "False",
             "use_respawn": "False",
+            # True makes nav2_bringup run slam_toolbox in place of AMCL.
+            "slam": LaunchConfiguration("slam"),
         }.items(),
         condition=use_nav,
+    )
+
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("slam_toolbox"),
+                "launch", "online_async_launch.py",
+            )
+        ),
+        launch_arguments={"use_sim_time": "True"}.items(),
+        # Only when Nav2 is absent. With nav:=true, nav2_bringup owns the
+        # slam_toolbox instance and a second one here would fight it for
+        # map->odom.
+        # AndSubstitution/NotSubstitution, not PythonExpression: the latter
+        # eval()s its text, and launch substitutes the lowercase strings "true"
+        # and "false", which are not Python literals. It fails at launch time
+        # with "name 'false' is not defined".
+        condition=IfCondition(AndSubstitution(
+            LaunchConfiguration("slam"),
+            NotSubstitution(LaunchConfiguration("nav")),
+        )),
     )
 
     return LaunchDescription(
         args
         + env
-        + [gz_server, spawn, camera_bridge, gt_pose_bridge, robot_state_publisher, nav2]
+        + [gz_server, spawn, camera_bridge, gt_pose_bridge, robot_state_publisher,
+           nav2, slam]
     )

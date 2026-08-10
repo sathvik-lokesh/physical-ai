@@ -24,7 +24,15 @@
 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="tb3_base_world" params="headless light_diffuse:='0.8 0.8 0.8 1'">
+  <!--
+    `scenery` controls the stock turtlebot3_world (hexagon wall + nine cylinders).
+    p1 wants it: those cylinders are what a robot deflects off, and they are the
+    reason the flat slab had to be added. p2 does not: it needs a room with
+    *nameable* objects in it, and nine untextured cylinders are exactly the
+    flat-shaded geometry p1 measured small VLMs failing on.
+  -->
+  <xacro:macro name="tb3_base_world"
+               params="headless light_diffuse:='0.8 0.8 0.8 1' scenery:='true'">
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -99,12 +107,14 @@
         <real_time_factor>1</real_time_factor>
     </physics>
 
+    <xacro:if value="${scenery}">
     <model name="turtlebot3_world">
       <static>1</static>
       <include>
         <uri>model://turtlebot3_world</uri>
       </include>
     </model>
+    </xacro:if>
   </xacro:macro>
 
   <!--

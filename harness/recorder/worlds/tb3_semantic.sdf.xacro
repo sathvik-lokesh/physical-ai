@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!--
+  A 7x7 m room with four nameable, textured objects at known poses.
+
+  Built for p2, and built deliberately unlike p1's worlds. p1 measured small
+  VLMs collapsing to constant answers on flat-shaded Gazebo primitives, so a
+  semantic-mapping demo standing on nine untextured cylinders would inherit that
+  failure and call it a SLAM result. These four come from Gazebo Fuel with
+  diffuse textures: chair and sofa are meshes, table and bookshelf are textured
+  box composites. Whether that is enough for a 3B model to name them is the
+  first thing p2 has to measure, before any mapping code gets written.
+
+  `scenery="false"` drops the stock turtlebot3_world, whose hexagon and cylinders
+  would clutter both the lidar map and the camera.
+
+  Geometry notes that matter:
+  - The camera sits 0.157 m off the floor, which is low. At 1.5 m range its
+    frame spans roughly z = 0 to 0.8 m, so a bookshelf is seen bottom-first.
+    Objects sit at +-2.5 m and the robot loops nearer the centre, giving 1.3-3.7 m
+    of standoff so each object is framed rather than filling the view.
+  - Walls are 1.0 m tall: well above the lidar at ~0.15 m, and tall enough that
+    the camera sees wall rather than sky at the edges of the room.
+  - Every object pose here is ground truth for scoring "where did you last see
+    the X". They are `static` so the robot cannot nudge them and invalidate that.
+-->
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="headless" default="true"/>
+  <xacro:include filename="tb3_base.xacro"/>
+
+  <xacro:property name="fuel" value="https://fuel.gazebosim.org/1.0/OpenRobotics/models"/>
+
+  <xacro:macro name="furniture" params="name model x y yaw">
+    <include>
+      <uri>${fuel}/${model}</uri>
+      <name>${name}</name>
+      <pose>${x} ${y} 0 0 0 ${yaw}</pose>
+      <static>true</static>
+    </include>
+  </xacro:macro>
+
+  <world name="default">
+    <xacro:tb3_base_world headless="$(arg headless)" scenery="false"/>
+
+    <!-- the room -->
+    <xacro:slab name="wall_east"  x="3.5"  y="0"    yaw="0"              length="7.0" height="1.0"/>
+    <xacro:slab name="wall_west"  x="-3.5" y="0"    yaw="0"              length="7.0" height="1.0"/>
+    <xacro:slab name="wall_north" x="0"    y="3.5"  yaw="${radians(90)}" length="7.0" height="1.0"/>
+    <xacro:slab name="wall_south" x="0"    y="-3.5" yaw="${radians(90)}" length="7.0" height="1.0"/>
+
+    <!-- the objects, each facing roughly into the room -->
+    <xacro:furniture name="chair"     model="Chair"     x="2.5"  y="0"    yaw="${radians(180)}"/>
+    <xacro:furniture name="table"     model="Table"     x="0"    y="2.5"  yaw="${radians(-90)}"/>
+    <!-- -90, not 0. This model's wide face (0.92 m) runs along its local X and
+         its 0.41 m depth along local Y, so at yaw=0 a robot approaching from +X
+         sees the narrow side edge-on. It rendered as a plain brown column and
+         llava-phi3 answered "nothing" to it 3 times out of 3, which was the
+         correct reading of that frame. +90 turns the shelves to face the room: the 0.01 m back panel sits at local +Y, so the opening faces local -Y. -->
+    <xacro:furniture name="bookshelf" model="Bookshelf" x="-2.5" y="0"    yaw="${radians(90)}"/>
+    <xacro:furniture name="sofa"      model="Sofa"      x="0"    y="-2.5" yaw="${radians(90)}"/>
+  </world>
+</sdf>

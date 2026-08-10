@@ -1,0 +1,208 @@
+{
+  "scenario": "sit in the middle of the room and turn to face each object in turn",
+  "mode": "script",
+  "expect": "",
+  "duration_s": 48.55,
+  "path_m": 0.049,
+  "odom_path_m": 0.0,
+  "odom_overreport_m": -0.049,
+  "final_pose": {
+    "x": 0.007,
+    "y": -0.008,
+    "yaw_deg": -91.0
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "sit in the middle of the room and turn to face each object in turn",
+      "x": -0.001,
+      "y": -0.0,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "step_start",
+      "detail": "settle, facing +x (chair at 2.5,0)",
+      "x": -0.001,
+      "y": -0.0,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 0,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 6.0
+    },
+    {
+      "t_s": 6.0,
+      "kind": "step_end",
+      "detail": "step 0 complete",
+      "x": -0.001,
+      "y": -0.0,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 6.0,
+      "kind": "step_start",
+      "detail": "turn 90 deg toward +y",
+      "x": -0.001,
+      "y": -0.0,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 1,
+      "linear": 0.0,
+      "angular": 0.2,
+      "seconds": 7.85
+    },
+    {
+      "t_s": 13.85,
+      "kind": "step_end",
+      "detail": "step 1 complete",
+      "x": -0.01,
+      "y": -0.007,
+      "path_m": 0.015,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 13.85,
+      "kind": "step_start",
+      "detail": "hold, facing +y (table at 0,2.5)",
+      "x": -0.01,
+      "y": -0.007,
+      "path_m": 0.015,
+      "odom_path_m": 0.0,
+      "step": 2,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 6.0
+    },
+    {
+      "t_s": 19.85,
+      "kind": "step_end",
+      "detail": "step 2 complete",
+      "x": -0.008,
+      "y": -0.007,
+      "path_m": 0.016,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 19.85,
+      "kind": "step_start",
+      "detail": "turn 90 deg toward -x",
+      "x": -0.008,
+      "y": -0.007,
+      "path_m": 0.016,
+      "odom_path_m": 0.0,
+      "step": 3,
+      "linear": 0.0,
+      "angular": 0.2,
+      "seconds": 7.85
+    },
+    {
+      "t_s": 26.0,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.0 cm in 6.0 s",
+      "x": -0.004,
+      "y": -0.016,
+      "path_m": 0.028,
+      "odom_path_m": 0.0,
+      "moved_cm": 1.0
+    },
+    {
+      "t_s": 27.7,
+      "kind": "step_end",
+      "detail": "step 3 complete",
+      "x": -0.001,
+      "y": -0.017,
+      "path_m": 0.031,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 27.7,
+      "kind": "step_start",
+      "detail": "hold, facing -x (bookshelf at -2.5,0)",
+      "x": -0.001,
+      "y": -0.017,
+      "path_m": 0.031,
+      "odom_path_m": 0.0,
+      "step": 4,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 6.0
+    },
+    {
+      "t_s": 33.7,
+      "kind": "step_end",
+      "detail": "step 4 complete",
+      "x": -0.001,
+      "y": -0.015,
+      "path_m": 0.033,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 33.7,
+      "kind": "step_start",
+      "detail": "turn 90 deg toward -y",
+      "x": -0.001,
+      "y": -0.015,
+      "path_m": 0.033,
+      "odom_path_m": 0.0,
+      "step": 5,
+      "linear": 0.0,
+      "angular": 0.2,
+      "seconds": 7.85
+    },
+    {
+      "t_s": 39.8,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.0 cm in 6.0 s",
+      "x": 0.007,
+      "y": -0.011,
+      "path_m": 0.044,
+      "odom_path_m": 0.0,
+      "moved_cm": 1.0
+    },
+    {
+      "t_s": 41.55,
+      "kind": "step_end",
+      "detail": "step 5 complete",
+      "x": 0.008,
+      "y": -0.008,
+      "path_m": 0.048,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 41.55,
+      "kind": "step_start",
+      "detail": "hold, facing -y (sofa at 0,-2.5)",
+      "x": 0.008,
+      "y": -0.008,
+      "path_m": 0.048,
+      "odom_path_m": 0.0,
+      "step": 6,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 6.0
+    },
+    {
+      "t_s": 47.55,
+      "kind": "step_end",
+      "detail": "step 6 complete",
+      "x": 0.007,
+      "y": -0.008,
+      "path_m": 0.049,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 48.55,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": 0.007,
+      "y": -0.008,
+      "path_m": 0.049,
+      "odom_path_m": 0.0
+    }
+  ]
+}
