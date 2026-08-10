@@ -1,0 +1,31 @@
+{
+  "name": "behavior_pair_two_images",
+  "json_mode": true,
+  "num_predict": 120,
+  "prompt": "Two frames from the forward-facing camera of a car driving on a public road. The FIRST image was taken {dt_s} seconds BEFORE the SECOND image.\n\nCompare them: how far the scene has moved between the two frames tells you how fast the car is going, and how the road has swung tells you whether it is turning.\n\nDescribe what the car is doing in the SECOND (later) frame.\n\nChoose exactly one steering description:\n- \"going straight\"\n- \"slightly steering to the left\"\n- \"slightly steering to the right\"\n- \"steering to the left\"\n- \"steering to the right\"\n\nAnd exactly one speed description:\n- \"not moving\"\n- \"driving slowly\"\n- \"driving with normal speed\"\n- \"driving fast\"\n- \"driving very fast\"\n\nRespond as JSON: {\"steer\": \"one of the steering descriptions\", \"speed\": \"one of the speed descriptions\", \"reason\": \"one short sentence\"}",
+  "fields": {
+    "steer": {
+      "type": "enum",
+      "values": [
+        "going straight",
+        "slightly steering to the left",
+        "slightly steering to the right",
+        "steering to the left",
+        "steering to the right"
+      ]
+    },
+    "speed": {
+      "type": "enum",
+      "values": [
+        "not moving",
+        "driving slowly",
+        "driving with normal speed",
+        "driving fast",
+        "driving very fast"
+      ]
+    },
+    "reason": {
+      "type": "str"
+    }
+  }
+}

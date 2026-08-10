@@ -7,3 +7,9 @@ p*/data/*/logs/
 __pycache__/
 *.pyc
 .venv/
+
+# DriveLM: 193 MB QA file + 3.5 GB of nuScenes images. The QA file is
+# CC BY-NC-SA and re-fetchable; the images carry nuScenes' non-commercial
+# terms and must not be redistributed from here.
+p3-drivelm-eval/data/drivelm/
+p3-drivelm-eval/data/*/pairs/

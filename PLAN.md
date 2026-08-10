@@ -49,19 +49,49 @@ baseline per distinct image. Two near-miss headlines were caught by the duplicat
 weighting and are recorded in `p1-failure-vlm/README.md`. `bakllava` does not fit this
 machine (5.5 GB resident on 8.41 GB, killed at 84/103) and should not be retried here.
 
-**NEXT SESSION STARTS HERE — Phase 3 (`p3-alpamayo-eval`).**
+**NEXT SESSION STARTS HERE — run Phase 3 (`p3-drivelm-eval`), which is built but
+has never been run. It needs one manual step from you before it can run at all.**
 
-Phase 3 is the background-friendly one: it needs no simulator at all, so it does not
-compete with anything for the CPU. Before writing code, settle the open question this
-plan has carried since it was written:
+**The Alpamayo question is settled, and the answer is no.** Not on size — the
+Chain-of-Causation traces are a 150 KB parquet and camera chunks are ~2 GB per 100
+clips, both affordable despite the 133 TB total. The licence forbids it three times
+over: §1 grants use *solely for internal development of autonomous vehicles using
+NVIDIA technology* and §4.3 forbids any other purpose; §4.6 forbids derivative works
+and distribution; and §3 defines Confidential Information to include *"results of
+benchmarking … or performance data relating to the Dataset"*, so publishing the
+numbers is the one thing the licence specifically prohibits — and publishing is the
+whole deliverable. Do not revisit this.
 
-  **What is the Alpamayo open dataset's size and licence?** If it will not fit or cannot
-  be used, Phase 3 as specified is dead and the fallback is to build the same
-  reasoning-trace evaluation on `../nvidia-target/edge-vlm-bench` data instead.
+The `edge-vlm-bench` fallback named in the old plan was rejected too: it is SUN397
+scene classification with no reference reasoning to score anything against.
 
-Then reuse `harness/vlmrunner` unchanged, exactly as p1 and p2 did, and reuse
-`scoring/score.py` — its duplicate-weighted accuracy and majority baseline are what
-caught two false headlines in p1 and one in p2.
+**Phase 3 now runs on DriveLM-nuScenes** (CC BY-NC-SA 4.0, gated with auto-approval),
+whose keyframes carry the ego vehicle's own behaviour as a sentence pair that
+factorises into `steer` and `speed`. Steering has a 78.9% majority class, so
+answering "going straight" every time posts a number that reads like success —
+exactly the p1 `mode_only` trap; speed is near-uniform at 27.8% and is the axis that
+cannot be answered from a still frame at all. Two arms: one frame, and two frames
+with the true gap stated, which makes speed recoverable in principle. See
+`p3-drivelm-eval/README.md` for the full design.
+
+**Built and verified: `fetch_drivelm.sh`, `build_manifest.py`, three task specs.**
+The builder was dry-run end to end (200 items from 200 distinct scenes, one frame per
+scene, stratified) and the task specs were tested against `vlmrunner.tasks.Task`.
+
+**The manual step:** accept the licence once at
+https://huggingface.co/datasets/OpenDriveLab/DriveLM, then
+`export HF_TOKEN=hf_...` and run `./fetch_drivelm.sh --images` (193 MB + 3.5 GB).
+
+**A trap already sprung, worth keeping:** an ungated third-party mirror of DriveLM
+(`nicolas93/DriveLM`) serves a `v1_1_train_nus.json` with *exactly* the official byte
+length, 192,961,829 bytes, and a different sha256. The design numbers above were
+computed from that mirror before the discrepancy surfaced and are marked provisional
+in the README. Both scripts now verify against the sha256 the HF API reports for the
+official repo. **Re-derive every number from the hash-verified file before publishing
+anything.** Compare hashes, never sizes.
+
+Budget: ~150–180 s per item on real street scenes (p1 was 85 s, p2 175 s), so
+200 items is 8–10 h per arm — two or three overnight runs.
 
 **Two things still outstanding on p1/p2 whenever you want them:**
 1. **Push to GitHub.** The repo is local-only with no remote. Everything from
