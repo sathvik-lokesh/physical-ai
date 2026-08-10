@@ -1,0 +1,11 @@
+{
+  "name": "behavior_single",
+  "json_mode": true,
+  "num_predict": 120,
+  "prompt": "This is the forward-facing camera of a car driving on a public road.\n\nDescribe what the car itself is doing at this moment.\n\nChoose exactly one steering description:\n- \"going straight\"\n- \"slightly steering to the left\"\n- \"slightly steering to the right\"\n- \"steering to the left\"\n- \"steering to the right\"\n\nAnd exactly one speed description:\n- \"not moving\"\n- \"driving slowly\"\n- \"driving with normal speed\"\n- \"driving fast\"\n- \"driving very fast\"\n\nRespond as JSON: {\"steer\": \"one of the steering descriptions\", \"speed\": \"one of the speed descriptions\", \"reason\": \"one short sentence\"}",
+  "fields": {
+    "steer": {"type": "enum", "values": ["going straight", "slightly steering to the left", "slightly steering to the right", "steering to the left", "steering to the right"]},
+    "speed": {"type": "enum", "values": ["not moving", "driving slowly", "driving with normal speed", "driving fast", "driving very fast"]},
+    "reason": {"type": "str"}
+  }
+}
