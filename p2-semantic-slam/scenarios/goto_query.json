@@ -1,0 +1,28 @@
+{
+  "id": "goto_chair",
+  "label": "\"where did you last see the chair\" -> drive to the chair",
+  "expect": "",
+  "nav": false,
+  "slam": true,
+  "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_semantic.sdf.xacro",
+  "spawn": {
+    "x": 1.5,
+    "y": 1.5,
+    "yaw": 3.14159
+  },
+  "mode": "goto",
+  "goal": {
+    "x": -0.038,
+    "y": 1.478,
+    "yaw_deg": -179.2
+  },
+  "timeout_s": 240,
+  "duration_cap_s": 1800,
+  "_query": "where did you last see the chair",
+  "_target": "chair",
+  "_object_world": [
+    2.538,
+    0.036
+  ],
+  "_object_error_m": 0.052
+}

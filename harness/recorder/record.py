@@ -87,6 +87,11 @@ def ros_env() -> dict:
     # Keep rollouts on this machine only; a stray ROS peer on the LAN would
     # otherwise inject topics into the bag.
     env.setdefault("ROS_LOCALHOST_ONLY", "1")
+    # Unbuffered, so a child's log survives being killed. A capped or hung run
+    # is exactly when its last output matters most, and Python's default block
+    # buffering throws it away on SIGKILL -- which turned one hang into a long
+    # guessing game about a process that had in fact printed nothing.
+    env.setdefault("PYTHONUNBUFFERED", "1")
     return env
 
 
@@ -128,6 +133,14 @@ def wait_for_messages(topic: str, timeout_s: float, env: dict) -> bool:
         return False
 
 
+class _Terminated(Exception):
+    """SIGTERM, raised so the cleanup in `finally` actually runs."""
+
+
+def _on_sigterm(_signum, _frame):
+    raise _Terminated()
+
+
 def record(args) -> int:
     scenario = json.loads(Path(args.scenario).read_text())
     run_id = args.run_id or scenario.get("id") or Path(args.scenario).stem
@@ -143,23 +156,43 @@ def record(args) -> int:
 
     env = ros_env()
     spawn = scenario.get("spawn", {})
-    use_nav = "true" if scenario.get("nav", False) else "false"
+    # Capitalised on purpose. These are forwarded to nav2_bringup, whose own
+    # launch file evaluates them with PythonExpression -- eval("false and True")
+    # raises NameError, and it surfaces as an unexplained sim startup timeout.
+    # "True"/"False" satisfy both Python's eval and launch's IfCondition.
+    use_nav = "True" if scenario.get("nav", False) else "False"
+    use_slam = "True" if scenario.get("slam", False) else "False"
+    # nav + slam together is legitimate: nav2_bringup then runs slam_toolbox in
+    # place of AMCL, which is how you navigate a room you are still mapping.
+    # What must never happen is a standalone slam_toolbox alongside AMCL, and
+    # the launch file prevents that rather than this check.
 
     launch_cmd = [
         "ros2", "launch", str(LAUNCH_FILE),
         f"nav:={use_nav}",
+        f"slam:={use_slam}",
         f"x_pose:={spawn.get('x', -2.0)}",
         f"y_pose:={spawn.get('y', -0.5)}",
         f"yaw:={spawn.get('yaw', 0.0)}",
     ]
     if scenario.get("world"):
         launch_cmd.append(f"world:={scenario['world']}")
+    if scenario.get("map"):
+        launch_cmd.append(f"map:={scenario['map']}")
+    if scenario.get("params_file"):
+        launch_cmd.append(f"params_file:={scenario['params_file']}")
 
     print(f"[record] run     : {run_id}")
     print(f"[record] scenario: {scenario.get('label', '')}")
     print(f"[record] expect  : {scenario.get('expect', '(unlabelled)')}")
     print(f"[record] nav2    : {use_nav}")
+    print(f"[record] slam    : {use_slam}")
     print(f"[record] out     : {out_dir}")
+
+    # Without this, an external `kill` skips the finally-block below and leaves
+    # the whole child tree running. A Nav2 bringup is fifteen processes, and
+    # they kept this machine at load 20 until they were killed by hand.
+    signal.signal(signal.SIGTERM, _on_sigterm)
 
     sim = Proc("sim", launch_cmd, logs / "sim.log", env)
     bag = None
@@ -185,7 +218,11 @@ def record(args) -> int:
             )
         print("[record] camera live")
 
-        topics = scenario.get("topics", DEFAULT_TOPICS)
+        topics = list(scenario.get("topics", DEFAULT_TOPICS))
+        if use_slam == "True":
+            # The occupancy grid is the whole point of a mapping run, and it is
+            # latched, so it has to be in the bag or the map is lost with the sim.
+            topics += ["/map", "/slam_toolbox/graph_visualization"]
         bag = Proc(
             "bag",
             ["ros2", "bag", "record", "-o", str(bag_dir), *topics],
@@ -201,10 +238,21 @@ def record(args) -> int:
             "--label", scenario.get("label", run_id),
             "--expect", scenario.get("expect", ""),
         ]
-        if scenario.get("mode") == "goal":
+        if scenario.get("mode") in ("goal", "goto"):
             g = scenario["goal"]
-            drive_cmd += ["--goal", f"{g['x']},{g['y']},{g.get('yaw_deg', 0)}"]
+            # "--goal=..." not "--goal", "...": argparse reads a value with a
+            # leading minus as another option flag, and map-frame coordinates
+            # are negative half the time because the frame is centred on wherever
+            # the robot started. The equals form is unambiguous.
+            drive_cmd += [f"--goal={g['x']},{g['y']},{g.get('yaw_deg', 0)}"]
             drive_cmd += ["--timeout", str(scenario.get("timeout_s", 180))]
+            # AMCL will not localise until it is told roughly where it is, and
+            # Nav2 never becomes active until it does. The robot is spawned at a
+            # known pose, so hand that over rather than waiting forever.
+            ip = scenario.get("initial_pose")
+            if ip:
+                drive_cmd += [
+                    f"--initial-pose={ip['x']},{ip['y']},{ip.get('yaw_deg', 0)}"]
         else:
             drive_cmd += ["--script", json.dumps(scenario["script"])]
 
@@ -225,6 +273,9 @@ def record(args) -> int:
     except KeyboardInterrupt:
         status = "interrupted"
         print("\n[record] interrupted — shutting down cleanly")
+    except _Terminated:
+        status = "terminated"
+        print("\n[record] SIGTERM — shutting down cleanly")
     finally:
         for proc in (drive, bag, sim):
             if proc is not None:
@@ -232,6 +283,10 @@ def record(args) -> int:
         # Gazebo occasionally survives its launcher; make sure nothing is left
         # holding a GB of RAM after the run.
         subprocess.run(["pkill", "-f", "gz sim"], capture_output=True)
+        # Nav2 nodes are launched by `ros2 launch` and do not always die with
+        # it. Left behind they hold several GB and peg every core.
+        subprocess.run(["pkill", "-f", "/opt/ros/jazzy/lib/nav2_"],
+                       capture_output=True)
 
     meta = {
         "run_id": run_id,

@@ -1,0 +1,10 @@
+{
+  "name": "name_object",
+  "json_mode": true,
+  "num_predict": 80,
+  "prompt": "This is the forward-facing camera view from a small robot driving around an indoor room. The camera is mounted low, about 16 cm above the floor.\n\nThere is one main piece of furniture in view.\n\nAnswer as JSON with two keys:\n{\"object_open\": \"what the object is, in one or two words\", \"object_choice\": \"exactly one of: chair, table, bookshelf, sofa, nothing\"}",
+  "fields": {
+    "object_open": {"type": "str"},
+    "object_choice": {"type": "enum", "values": ["chair", "table", "bookshelf", "sofa", "nothing"]}
+  }
+}

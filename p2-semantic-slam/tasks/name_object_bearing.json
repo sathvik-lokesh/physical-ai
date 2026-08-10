@@ -1,0 +1,11 @@
+{
+  "name": "name_object_bearing",
+  "json_mode": true,
+  "num_predict": 90,
+  "prompt": "This is the forward-facing camera view from a small robot driving around an indoor room. The camera is mounted low, about 16 cm above the floor.\n\nFirst decide whether there is a piece of furniture in view. Then say WHERE in the image it appears, horizontally.\n\nAnswer as JSON with three keys:\n{\"object_choice\": \"exactly one of: chair, table, bookshelf, sofa, nothing\", \"side\": \"exactly one of: left, centre, right, none\", \"object_open\": \"what you see, in one or two words\"}\n\nUse \"left\" if the object is in the left third of the image, \"centre\" if it is in the middle third, \"right\" if it is in the right third. Use \"none\" for both keys if there is no furniture in view.",
+  "fields": {
+    "object_choice": {"type": "enum", "values": ["chair", "table", "bookshelf", "sofa", "nothing"]},
+    "side": {"type": "enum", "values": ["left", "centre", "right", "none"]},
+    "object_open": {"type": "str"}
+  }
+}

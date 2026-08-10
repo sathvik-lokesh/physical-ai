@@ -253,11 +253,105 @@ class RolloutDriver(Node):
         self.cmd_pub.publish(Twist())  # always leave the robot stopped
         self.spin_for(1.0)
 
-    def run_goal(self, x: float, y: float, yaw: float, timeout_s: float):
+    def run_goto(self, gx: float, gy: float, gyaw: float, timeout_s: float,
+                 pos_tol: float = 0.15, yaw_tol: float = 0.15):
+        """
+        Drive to a pose in the map frame with a plain turn-then-go controller.
+
+        This exists because Nav2's full stack does not fit this machine. Fifteen
+        non-composed nodes alongside a software-rendered Gazebo drove the load
+        average to 21 on four cores, and the driver was starved to 2.8% CPU
+        before anything moved. slam_toolbox on its own is one node, so the pose
+        estimate is still a real localiser's rather than the simulator's, and
+        the room between the patrol ring and the objects is open floor, which is
+        what makes a straight-line controller adequate here. It would not be
+        adequate in a cluttered room, and that is the honest limit of this demo.
+        """
+        from tf2_ros import Buffer, TransformListener, LookupException, \
+            ConnectivityException, ExtrapolationException
+
+        buf = Buffer()
+        TransformListener(buf, self)
+        self.commanding = True
+        self.log("goto_start", f"heading for map ({gx:.2f}, {gy:.2f}, "
+                               f"{math.degrees(gyaw):.0f} deg)")
+
+        deadline = self.sim_now() + timeout_s
+        wall_deadline = time.time() + timeout_s / MIN_RTF + 60.0
+        phase, reached = "drive", False
+
+        while rclpy.ok():
+            rclpy.spin_once(self, timeout_sec=0.05)
+            if self.sim_now() > deadline or time.time() > wall_deadline:
+                self.log("goto_timeout", f"no arrival within {timeout_s}s of sim time")
+                break
+            try:
+                tf = buf.lookup_transform("map", "base_footprint", rclpy.time.Time())
+            except (LookupException, ConnectivityException, ExtrapolationException):
+                continue                       # slam_toolbox has not published yet
+
+            px = tf.transform.translation.x
+            py = tf.transform.translation.y
+            q = tf.transform.rotation
+            pyaw = math.atan2(2 * (q.w * q.z + q.x * q.y),
+                              1 - 2 * (q.y * q.y + q.z * q.z))
+
+            dx, dy = gx - px, gy - py
+            dist = math.hypot(dx, dy)
+            msg = Twist()
+
+            if phase == "drive" and dist > pos_tol:
+                want = math.atan2(dy, dx)
+                err = math.atan2(math.sin(want - pyaw), math.cos(want - pyaw))
+                if abs(err) > 0.35:            # point roughly at it before moving
+                    msg.angular.z = 0.4 if err > 0 else -0.4
+                else:
+                    msg.linear.x = min(0.15, 0.4 * dist)
+                    msg.angular.z = max(-0.5, min(0.5, 1.2 * err))
+            else:
+                if phase == "drive":
+                    self.log("goto_arrived",
+                             f"within {dist:.2f} m of the goal, turning to face it")
+                    phase = "turn"
+                err = math.atan2(math.sin(gyaw - pyaw), math.cos(gyaw - pyaw))
+                if abs(err) < yaw_tol:
+                    reached = True
+                    break
+                msg.angular.z = 0.35 if err > 0 else -0.35
+
+            self.cmd_pub.publish(msg)
+
+        self.cmd_pub.publish(Twist())
+        self.commanding = False
+        if reached:
+            self.log("goto_reached", "final heading reached; stopped")
+        self.spin_for(1.0)
+
+    def run_goal(self, x: float, y: float, yaw: float, timeout_s: float,
+                 initial: "tuple[float, float, float] | None" = None):
         from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
         from geometry_msgs.msg import PoseStamped
 
         nav = BasicNavigator()
+
+        # AMCL publishes no map->odom until it has a pose estimate, and
+        # waitUntilNav2Active() blocks on exactly that, so without this the run
+        # hangs until its timeout with nothing in the log to say why. The robot
+        # is spawned at a pose we chose, so there is no reason to make the
+        # localiser guess it.
+        if initial is not None:
+            ix, iy, iyaw = initial
+            start = PoseStamped()
+            start.header.frame_id = "map"
+            start.header.stamp = nav.get_clock().now().to_msg()
+            start.pose.position.x = ix
+            start.pose.position.y = iy
+            start.pose.orientation.z = math.sin(iyaw / 2)
+            start.pose.orientation.w = math.cos(iyaw / 2)
+            nav.setInitialPose(start)
+            self.log("initial_pose", f"seeded AMCL at ({ix}, {iy}, "
+                                     f"{math.degrees(iyaw):.0f} deg)")
+
         self.log("nav2_wait", "waiting for Nav2 to become active")
         nav.waitUntilNav2Active()
         self.log("nav2_active", "Nav2 active")
@@ -320,11 +414,13 @@ class RolloutDriver(Node):
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     p.add_argument("--events-out", required=True, help="where to write the events JSON")
-    p.add_argument("--mode", choices=["goal", "script"], required=True)
+    p.add_argument("--mode", choices=["goal", "goto", "script"], required=True)
     p.add_argument("--goal", default=None, help="x,y,yaw_deg for --mode goal")
     p.add_argument("--script", default=None,
                    help="JSON file or inline JSON list of drive steps")
     p.add_argument("--timeout", type=float, default=180.0, help="goal timeout, seconds")
+    p.add_argument("--initial-pose", default=None,
+                   help="x,y,yaw_deg to seed AMCL with, in the map frame")
     p.add_argument("--label", default="", help="scenario name recorded into the events file")
     p.add_argument("--expect", default="", help="expected ground-truth outcome label")
     args = p.parse_args()
@@ -337,11 +433,20 @@ def main():
             return 2
         driver.log("rollout_start", args.label or args.mode)
 
-        if args.mode == "goal":
+        if args.mode == "goto":
+            if not args.goal:
+                raise SystemExit("--mode goto requires --goal x,y,yaw_deg")
+            x, y, yaw_deg = (float(v) for v in args.goal.split(","))
+            driver.run_goto(x, y, math.radians(yaw_deg), args.timeout)
+        elif args.mode == "goal":
             if not args.goal:
                 raise SystemExit("--mode goal requires --goal x,y,yaw_deg")
             x, y, yaw_deg = (float(v) for v in args.goal.split(","))
-            driver.run_goal(x, y, math.radians(yaw_deg), args.timeout)
+            initial = None
+            if args.initial_pose:
+                ix, iy, iyaw = (float(v) for v in args.initial_pose.split(","))
+                initial = (ix, iy, math.radians(iyaw))
+            driver.run_goal(x, y, math.radians(yaw_deg), args.timeout, initial)
         else:
             if not args.script:
                 raise SystemExit("--mode script requires --script")

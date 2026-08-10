@@ -1,0 +1,338 @@
+{
+  "scenario": "patrol a square circuit, pausing to spin a full turn at each corner",
+  "mode": "script",
+  "expect": "",
+  "duration_s": 184.5,
+  "path_m": 12.269,
+  "odom_path_m": 12.003,
+  "odom_overreport_m": -0.266,
+  "final_pose": {
+    "x": 1.647,
+    "y": 1.339,
+    "yaw_deg": 84.2
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "patrol a square circuit, pausing to spin a full turn at each corner",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "step_start",
+      "detail": "settle at corner A (1.5, 1.5)",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 0,
+      "linear": 0.0,
+      "angular": 0.0,
+      "seconds": 4.0
+    },
+    {
+      "t_s": 4.0,
+      "kind": "step_end",
+      "detail": "step 0 complete",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 4.0,
+      "kind": "step_start",
+      "detail": "spin 360 at corner A",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0,
+      "step": 1,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 20.94
+    },
+    {
+      "t_s": 10.2,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.3 cm in 6.0 s",
+      "x": 1.51,
+      "y": 1.509,
+      "path_m": 0.018,
+      "odom_path_m": 0.0,
+      "moved_cm": 1.3
+    },
+    {
+      "t_s": 24.95,
+      "kind": "step_end",
+      "detail": "step 1 complete",
+      "x": 1.5,
+      "y": 1.498,
+      "path_m": 0.057,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 24.95,
+      "kind": "step_start",
+      "detail": "drive 3 m to corner B (-1.5, 1.5)",
+      "x": 1.5,
+      "y": 1.498,
+      "path_m": 0.057,
+      "odom_path_m": 0.0,
+      "step": 2,
+      "linear": 0.15,
+      "angular": 0.0,
+      "seconds": 20.0
+    },
+    {
+      "t_s": 44.95,
+      "kind": "step_end",
+      "detail": "step 2 complete",
+      "x": -1.478,
+      "y": 1.565,
+      "path_m": 3.036,
+      "odom_path_m": 2.983
+    },
+    {
+      "t_s": 44.95,
+      "kind": "step_start",
+      "detail": "turn 90 to face -y",
+      "x": -1.478,
+      "y": 1.565,
+      "path_m": 3.036,
+      "odom_path_m": 2.983,
+      "step": 3,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 5.24
+    },
+    {
+      "t_s": 50.19,
+      "kind": "step_end",
+      "detail": "step 3 complete",
+      "x": -1.49,
+      "y": 1.573,
+      "path_m": 3.071,
+      "odom_path_m": 3.0
+    },
+    {
+      "t_s": 50.19,
+      "kind": "step_start",
+      "detail": "spin 360 at corner B",
+      "x": -1.49,
+      "y": 1.573,
+      "path_m": 3.071,
+      "odom_path_m": 3.0,
+      "step": 4,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 20.94
+    },
+    {
+      "t_s": 56.2,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.4 cm in 6.0 s",
+      "x": -1.499,
+      "y": 1.582,
+      "path_m": 3.087,
+      "odom_path_m": 3.0,
+      "moved_cm": 1.4
+    },
+    {
+      "t_s": 71.13,
+      "kind": "step_end",
+      "detail": "step 4 complete",
+      "x": -1.49,
+      "y": 1.572,
+      "path_m": 3.127,
+      "odom_path_m": 3.0
+    },
+    {
+      "t_s": 71.13,
+      "kind": "step_start",
+      "detail": "drive 3 m to corner C (-1.5, -1.5)",
+      "x": -1.49,
+      "y": 1.572,
+      "path_m": 3.127,
+      "odom_path_m": 3.0,
+      "step": 5,
+      "linear": 0.15,
+      "angular": 0.0,
+      "seconds": 20.0
+    },
+    {
+      "t_s": 91.13,
+      "kind": "step_end",
+      "detail": "step 5 complete",
+      "x": -1.635,
+      "y": -1.406,
+      "path_m": 6.109,
+      "odom_path_m": 5.984
+    },
+    {
+      "t_s": 91.13,
+      "kind": "step_start",
+      "detail": "turn 90 to face +x",
+      "x": -1.635,
+      "y": -1.406,
+      "path_m": 6.109,
+      "odom_path_m": 5.984,
+      "step": 6,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 5.24
+    },
+    {
+      "t_s": 96.37,
+      "kind": "step_end",
+      "detail": "step 6 complete",
+      "x": -1.642,
+      "y": -1.414,
+      "path_m": 6.141,
+      "odom_path_m": 6.0
+    },
+    {
+      "t_s": 96.37,
+      "kind": "step_start",
+      "detail": "spin 360 at corner C",
+      "x": -1.642,
+      "y": -1.414,
+      "path_m": 6.141,
+      "odom_path_m": 6.0,
+      "step": 7,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 20.94
+    },
+    {
+      "t_s": 102.4,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.4 cm in 6.0 s",
+      "x": -1.652,
+      "y": -1.424,
+      "path_m": 6.157,
+      "odom_path_m": 6.0,
+      "moved_cm": 1.4
+    },
+    {
+      "t_s": 117.31,
+      "kind": "step_end",
+      "detail": "step 7 complete",
+      "x": -1.642,
+      "y": -1.414,
+      "path_m": 6.197,
+      "odom_path_m": 6.0
+    },
+    {
+      "t_s": 117.31,
+      "kind": "step_start",
+      "detail": "drive 3 m to corner D (1.5, -1.5)",
+      "x": -1.642,
+      "y": -1.414,
+      "path_m": 6.197,
+      "odom_path_m": 6.0,
+      "step": 8,
+      "linear": 0.15,
+      "angular": 0.0,
+      "seconds": 20.0
+    },
+    {
+      "t_s": 137.31,
+      "kind": "step_end",
+      "detail": "step 8 complete",
+      "x": 1.335,
+      "y": -1.64,
+      "path_m": 9.182,
+      "odom_path_m": 8.985
+    },
+    {
+      "t_s": 137.31,
+      "kind": "step_start",
+      "detail": "turn 90 to face +y",
+      "x": 1.335,
+      "y": -1.64,
+      "path_m": 9.182,
+      "odom_path_m": 8.985,
+      "step": 9,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 5.24
+    },
+    {
+      "t_s": 142.55,
+      "kind": "step_end",
+      "detail": "step 9 complete",
+      "x": 1.34,
+      "y": -1.647,
+      "path_m": 9.211,
+      "odom_path_m": 9.0
+    },
+    {
+      "t_s": 142.55,
+      "kind": "step_start",
+      "detail": "spin 360 at corner D",
+      "x": 1.34,
+      "y": -1.647,
+      "path_m": 9.211,
+      "odom_path_m": 9.0,
+      "step": 10,
+      "linear": 0.0,
+      "angular": 0.3,
+      "seconds": 20.94
+    },
+    {
+      "t_s": 148.6,
+      "kind": "stall_detected",
+      "detail": "commanded motion but moved 1.4 cm in 6.0 s",
+      "x": 1.349,
+      "y": -1.658,
+      "path_m": 9.227,
+      "odom_path_m": 9.0,
+      "moved_cm": 1.4
+    },
+    {
+      "t_s": 163.49,
+      "kind": "step_end",
+      "detail": "step 10 complete",
+      "x": 1.34,
+      "y": -1.647,
+      "path_m": 9.267,
+      "odom_path_m": 9.0
+    },
+    {
+      "t_s": 163.49,
+      "kind": "step_start",
+      "detail": "drive 3 m back to corner A",
+      "x": 1.34,
+      "y": -1.647,
+      "path_m": 9.267,
+      "odom_path_m": 9.0,
+      "step": 11,
+      "linear": 0.15,
+      "angular": 0.0,
+      "seconds": 20.0
+    },
+    {
+      "t_s": 183.5,
+      "kind": "step_end",
+      "detail": "step 11 complete",
+      "x": 1.644,
+      "y": 1.311,
+      "path_m": 12.241,
+      "odom_path_m": 11.986
+    },
+    {
+      "t_s": 184.5,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": 1.647,
+      "y": 1.339,
+      "path_m": 12.269,
+      "odom_path_m": 12.003
+    }
+  ]
+}

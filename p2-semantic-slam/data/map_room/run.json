@@ -1,0 +1,95 @@
+{
+  "run_id": "map_room",
+  "status": "completed",
+  "scenario": {
+    "id": "map_room",
+    "label": "patrol a square circuit, pausing to spin a full turn at each corner",
+    "expect": "",
+    "nav": false,
+    "slam": true,
+    "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_semantic.sdf.xacro",
+    "spawn": {
+      "x": 1.5,
+      "y": 1.5,
+      "yaw": 3.14159
+    },
+    "mode": "script",
+    "script": [
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 4,
+        "label": "settle at corner A (1.5, 1.5)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 20.94,
+        "label": "spin 360 at corner A"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 20,
+        "label": "drive 3 m to corner B (-1.5, 1.5)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 5.24,
+        "label": "turn 90 to face -y"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 20.94,
+        "label": "spin 360 at corner B"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 20,
+        "label": "drive 3 m to corner C (-1.5, -1.5)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 5.24,
+        "label": "turn 90 to face +x"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 20.94,
+        "label": "spin 360 at corner C"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 20,
+        "label": "drive 3 m to corner D (1.5, -1.5)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 5.24,
+        "label": "turn 90 to face +y"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.3,
+        "seconds": 20.94,
+        "label": "spin 360 at corner D"
+      },
+      {
+        "linear": 0.15,
+        "angular": 0.0,
+        "seconds": 20,
+        "label": "drive 3 m back to corner A"
+      }
+    ],
+    "duration_cap_s": 1500
+  },
+  "bag": "/home/sathv/Hanuman/physical-ai/p2-semantic-slam/data/map_room/bag",
+  "recorded_at": "2026-08-08T10:46:13"
+}

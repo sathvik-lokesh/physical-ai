@@ -49,15 +49,52 @@ baseline per distinct image. Two near-miss headlines were caught by the duplicat
 weighting and are recorded in `p1-failure-vlm/README.md`. `bakllava` does not fit this
 machine (5.5 GB resident on 8.41 GB, killed at 84/103) and should not be retried here.
 
-**Next actions, in order:**
-1. **Push to GitHub.** The repo is local-only with no remote. This is the single thing
-   standing between p1 and being usable in an application, and it is ~10 minutes.
-2. LinkedIn writeup. The honest hook is the two traps the harness caught, not the
-   negative result itself.
-3. Add the two Nav2 scenarios (`nav_goal_ok`, `nav_goal_blocked`); everything so far is
-   open-loop `script` mode, so Nav2 is installed but never exercised, and
-   `goal_unreachable`/`localisation_loss` have no data at all.
-4. Then Phase 2 (`p2-semantic-slam`), which reuses the recorder unchanged.
+**NEXT SESSION STARTS HERE — Phase 3 (`p3-alpamayo-eval`).**
+
+Phase 3 is the background-friendly one: it needs no simulator at all, so it does not
+compete with anything for the CPU. Before writing code, settle the open question this
+plan has carried since it was written:
+
+  **What is the Alpamayo open dataset's size and licence?** If it will not fit or cannot
+  be used, Phase 3 as specified is dead and the fallback is to build the same
+  reasoning-trace evaluation on `../nvidia-target/edge-vlm-bench` data instead.
+
+Then reuse `harness/vlmrunner` unchanged, exactly as p1 and p2 did, and reuse
+`scoring/score.py` — its duplicate-weighted accuracy and majority baseline are what
+caught two false headlines in p1 and one in p2.
+
+**Two things still outstanding on p1/p2 whenever you want them:**
+1. **Push to GitHub.** The repo is local-only with no remote. Everything from
+   commit `e2270bc` onward is uncommitted working tree. Nothing is published.
+2. LinkedIn writeups. The p1 hook is the two traps the harness caught; the p2 hook is
+   the demo GIF plus "a 3B VLM is a good identifier and a poor localiser".
+3. The two Nav2 failure scenarios (`nav_goal_ok`, `nav_goal_blocked`) are still
+   unrecorded, so `goal_unreachable` and `localisation_loss` have no data. Note that
+   p2 established Nav2's full stack does not run on this machine, so these need the
+   lightweight `--mode goto` path or they will not work either.
+
+**Phase 2 is DONE as an experiment (2026-08-08)** — see `p2-semantic-slam/README.md`,
+29/29 verify checks. It half works and the failing half is the finding: `slam_toolbox`
+localises to 8 mm and the labels are clean (26/26 on empty frames), but object
+*localisation* only reaches chair 0.08 m / bookshelf 0.22 m / sofa 1.46 m / table missed,
+against a 2.50 m trivial baseline. A whole-image label gives a bearing only to within the
+60 deg FOV, so triangulation loses to naive averaging. Asking the model which third of
+the frame the object sits in backfired: it answered `left` 9 times in 10 and `centre`
+never. **Keeper lesson: signed bearing bias predicts localisation error; absolute error
+points the wrong way.** Conclusion is about task decomposition — a 3B VLM is a good
+identifier and a poor localiser, so metric semantic mapping wants a detector with
+bounding boxes and the VLM naming its regions.
+
+**The demo is built** (`p2-semantic-slam/results/demo.gif`): an English question
+becomes a pose becomes motion, ending 0.96 m from the real chair against a 1.0 m
+standoff. It does **not** use Nav2 — the full stack is 15 processes and hit load
+average 21 on this 4-core box without moving the robot, so the demo runs
+slam_toolbox alone plus a turn-then-go controller. That costs planning and
+obstacle avoidance, and is recorded as a hardware finding.
+
+Left undone in p2: no path planning (see above), and corroboration is
+under-tested rather than disproven, since the route spun in place instead of
+building parallax.
 
 **Findings that changed the plan (see `harness/README.md` for detail):**
 - **Headless camera rendering works with no GPU.** `gz sim -s --headless-rendering`

@@ -1,0 +1,64 @@
+{
+  "run_id": "look_around3",
+  "status": "completed",
+  "scenario": {
+    "id": "look_around",
+    "label": "sit in the middle of the room and turn to face each object in turn",
+    "expect": "",
+    "nav": false,
+    "world": "/home/sathv/Hanuman/physical-ai/harness/recorder/worlds/tb3_semantic.sdf.xacro",
+    "spawn": {
+      "x": 0.0,
+      "y": 0.0,
+      "yaw": 0.0
+    },
+    "mode": "script",
+    "script": [
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 6,
+        "label": "settle, facing +x (chair at 2.5,0)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.2,
+        "seconds": 7.85,
+        "label": "turn 90 deg toward +y"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 6,
+        "label": "hold, facing +y (table at 0,2.5)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.2,
+        "seconds": 7.85,
+        "label": "turn 90 deg toward -x"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 6,
+        "label": "hold, facing -x (bookshelf at -2.5,0)"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.2,
+        "seconds": 7.85,
+        "label": "turn 90 deg toward -y"
+      },
+      {
+        "linear": 0.0,
+        "angular": 0.0,
+        "seconds": 6,
+        "label": "hold, facing -y (sofa at 0,-2.5)"
+      }
+    ],
+    "duration_cap_s": 300
+  },
+  "bag": "/home/sathv/Hanuman/physical-ai/p2-semantic-slam/data/look_around3/bag",
+  "recorded_at": "2026-08-07T22:18:47"
+}

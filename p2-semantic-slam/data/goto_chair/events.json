@@ -1,0 +1,61 @@
+{
+  "scenario": "\"where did you last see the chair\" -> drive to the chair",
+  "mode": "goto",
+  "expect": "",
+  "duration_s": 31.78,
+  "path_m": 1.58,
+  "odom_path_m": 1.517,
+  "odom_overreport_m": -0.063,
+  "final_pose": {
+    "x": 1.557,
+    "y": 0.173,
+    "yaw_deg": -5.4
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "kind": "rollout_start",
+      "detail": "\"where did you last see the chair\" -> drive to the chair",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 0.0,
+      "kind": "goto_start",
+      "detail": "heading for map (-0.04, 1.48, -179 deg)",
+      "x": 1.501,
+      "y": 1.5,
+      "path_m": 0.0,
+      "odom_path_m": 0.0
+    },
+    {
+      "t_s": 26.35,
+      "kind": "goto_arrived",
+      "detail": "within 0.15 m of the goal, turning to face it",
+      "x": 1.564,
+      "y": 0.173,
+      "path_m": 1.556,
+      "odom_path_m": 1.514
+    },
+    {
+      "t_s": 30.78,
+      "kind": "goto_reached",
+      "detail": "final heading reached; stopped",
+      "x": 1.558,
+      "y": 0.175,
+      "path_m": 1.578,
+      "odom_path_m": 1.517
+    },
+    {
+      "t_s": 31.78,
+      "kind": "rollout_end",
+      "detail": "",
+      "x": 1.557,
+      "y": 0.173,
+      "path_m": 1.58,
+      "odom_path_m": 1.517
+    }
+  ]
+}
