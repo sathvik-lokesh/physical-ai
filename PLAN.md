@@ -132,12 +132,45 @@ in the README. Both scripts now verify against the sha256 the HF API reports for
 official repo. **Re-derive every number from the hash-verified file before publishing
 anything.** Compare hashes, never sizes.
 
-Budget: ~150–180 s per item on real street scenes (p1 was 85 s, p2 175 s), so
-200 items is 8–10 h per arm — two or three overnight runs.
+### The run plan, once the token is in (agreed 2026-08-19)
+
+Latencies below are measured, not estimated: p1/p2 recorded `llava-phi3` at a
+97–168 s median per single-image item on this box, and the p3 smoke run measured
+the pair arms directly. Every p3 arm emits ~47–61 output tokens against p1's
+15–37, so use the upper half of that band.
+
+| step | time | basis |
+|---|---|---|
+| fetch + unzip 3.7 GB | 20–60 min | bandwidth-dependent, unattended |
+| build both manifests | ~5 min | 193 MB JSON parse + 200 composites |
+| **single**, 200 items | **~7 h** | p1 single-image median 97–161 s |
+| **pair composite**, 200 items | **~7 h** | smoke measured 92, 122 s warm |
+| **pair two-images**, 200 items | **~10 h** | smoke measured 174 s warm |
+
+~24 h of compute, three overnight runs, and **they cannot overlap** — a resident
+model holds 3.9 GB of this machine's 8.41 GB. `vlmrunner` fsyncs and resumes
+after every item, so no run needs an unbroken block; kill it whenever.
+
+**Do it in this order: `single` + `pair composite` over two nights (~14 h),
+score them, then decide whether `pair two-images` earns the third night.** If
+speed sits at chance in both of the first two, the third run is precisely what
+separates "the model cannot do this" from "the composite format destroyed the
+evidence" — the smoke run showed a composite squashes both frames into a single
+patch grid while two-images spends a full grid per frame.
+
+**If three nights is too many, cut `--n`, not an arm.** At `--n 100` the whole
+design is ~12 h over two nights, and 100 items still carries more independent
+evidence than p1's 103 frames did: duplicate weighting reduced those to 51
+distinct images, whereas every p3 item is a distinct scene by construction.
+Dropping the two-images arm saves 10 h and removes the most likely positive
+result, which is the wrong 10 h to save.
 
 **Two things still outstanding on p1/p2 whenever you want them:**
-1. **Push to GitHub.** The repo is local-only with no remote. Everything from
-   commit `e2270bc` onward is uncommitted working tree. Nothing is published.
+1. **Push to GitHub.** The repo is local-only with no remote and nothing is
+   published. The working tree is clean and everything is committed (HEAD
+   `9816a47` as of 2026-08-19) — the old note here about uncommitted work from
+   `e2270bc` onward is stale. SSH auth to GitHub works; `gh` is not installed,
+   so the empty repo has to be created in the browser first.
 2. LinkedIn writeups. The p1 hook is the two traps the harness caught; the p2 hook is
    the demo GIF plus "a 3B VLM is a good identifier and a poor localiser".
 3. The two Nav2 failure scenarios (`nav_goal_ok`, `nav_goal_blocked`) are still
