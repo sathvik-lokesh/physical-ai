@@ -60,6 +60,10 @@ get() {
     if [[ -f "$DEST/$name" ]]; then
         actual="$(sha256sum "$DEST/$name" | cut -d' ' -f1)"
         if [[ "$actual" == "$expect" ]]; then
+            # Record what the API said, so build_manifest.py has something to
+            # check against later. Without this its second gate has no expected
+            # value and can only wave everything through.
+            echo "$expect  $name" > "$DEST/$name.sha256"
             echo "ok   $name (already present, hash verified)"
             return
         fi
@@ -78,6 +82,7 @@ get() {
         exit 1
     fi
     mv "$DEST/$name.part" "$DEST/$name"
+    echo "$expect  $name" > "$DEST/$name.sha256"
     echo "ok   $name (hash verified)"
 }
 
