@@ -74,7 +74,7 @@ Measured while building this, not assumed:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-python recorder/record.py ../p1-failure-vlm/scenarios/stuck_wall.json \
+python3 recorder/record.py ../p1-failure-vlm/scenarios/stuck_wall.json \
     --out-dir ../p1-failure-vlm/data
 ```
 
@@ -88,7 +88,7 @@ way to *cause* a specific failure; `"mode": "goal"` runs the full Nav2 stack.
 ### Phase A' — extract keyframes
 
 ```bash
-python recorder/extract_keyframes.py ../p1-failure-vlm/data/stuck_wall/bag \
+python3 recorder/extract_keyframes.py ../p1-failure-vlm/data/stuck_wall/bag \
     --out ../p1-failure-vlm/data/stuck_wall --run-id stuck_wall
 ```
 
@@ -127,7 +127,7 @@ Useful flags: `--dry-run` (show the rendered prompt and exit), `--limit N`,
 ### Phase C — score
 
 ```bash
-python -m scoring.score \
+python3 -m scoring.score \
     --manifest ../p1-failure-vlm/data/stuck_wall/manifest.jsonl \
     --results  ../p1-failure-vlm/results/*.jsonl \
     --out      ../p1-failure-vlm/results/report

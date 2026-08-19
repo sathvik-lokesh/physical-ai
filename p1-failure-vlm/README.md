@@ -323,7 +323,7 @@ for s in nominal_drive oscillate_spin stuck_wall stuck_wall_oblique \
 done
 
 # Phase A'' — ground-truth labels from the event timeline
-python label_run.py data/*/
+python3 label_run.py data/*/
 
 # Phase B — the VLM (background this; never while the sim runs)
 ./run_eval.sh
@@ -339,7 +339,7 @@ PYTHONPATH=../harness python -m scoring.score \
     --task-dir tasks --out results/report
 
 # Check every number in this README still matches the data
-python verify_readme_numbers.py
+python3 verify_readme_numbers.py
 ```
 
 Runtime is about 72 s per rollout, and 5.5 h for the 206 `llava-phi3` items

@@ -49,8 +49,50 @@ baseline per distinct image. Two near-miss headlines were caught by the duplicat
 weighting and are recorded in `p1-failure-vlm/README.md`. `bakllava` does not fit this
 machine (5.5 GB resident on 8.41 GB, killed at 84/103) and should not be retried here.
 
-**NEXT SESSION STARTS HERE — run Phase 3 (`p3-drivelm-eval`), which is built but
-has never been run. It needs one manual step from you before it can run at all.**
+**NEXT SESSION STARTS HERE — run Phase 3 (`p3-drivelm-eval`). Everything that
+can be prepared without the data is now prepared and tested (2026-08-19); the
+only thing left is the manual licence step below.**
+
+**Prep pass, 2026-08-19.** `p3-drivelm-eval/selftest.py` now runs the whole
+chain — QA file to manifest to the runner's image and prompt resolution to
+`scoring/score.py` — on a synthetic DriveLM tree, with no network and no VLM.
+**36 checks, all passing**, in a couple of seconds. Run it before anything else.
+Writing it found three defects in code that had already been called "dry-run end
+to end", all now fixed:
+- **The second hash gate was dead code.** `OFFICIAL_QA_SHA256` was `None` and the
+  `--record-hash` flag meant to fill it was never implemented, so the check the
+  README advertised against the same-length mirror could never fire.
+  `fetch_drivelm.sh` now records the API's hash beside the file, the builder
+  checks it, and **refuses to build when it has nothing to compare against** —
+  the old behaviour was to pass silently. `--record-hash` exists now and asks
+  the API directly.
+- **`--qa` repointed the labels but not the images**, because the image root was
+  the module constant rather than the QA file's own directory. Pointing at a
+  second copy of the data found zero images.
+- **The builder could emit item ids that collide** (8-char token prefixes, no
+  uniqueness check), and `vlmrunner` refuses a manifest with duplicate ids. It
+  now widens the ids until they are unique.
+
+**A live 3-item smoke run settled the one unknown the design could not:
+`llava-phi3` does accept two images in one request.** Token accounting proves
+they are both really there rather than accepted and dropped — 827 prompt tokens
+for the composite arm against 1408 for two-images, a difference of one full
+patch grid — and both fit the 4096 context. It also surfaced something for the
+writeup: **a composite is one image to the encoder, so both frames share a
+single patch grid and each gets half the resolution, while the two-images arm
+spends a full grid per frame.** The two pair arms therefore differ in pixel
+budget as well as layout, and a gap between them cannot be attributed to layout
+alone.
+
+**Budget correction from the smoke run: always pass `--keep-alive`, never `0`.**
+The one item run with `--keep-alive 0` took 420 s against 174 s warm, because
+the flag unloads the 3.9 GB model after every request. Warm, the two-images arm
+runs ~174 s/item, above this plan's 150–180 s estimate for the *cheaper* arm — so
+budget ~10 h for two-images and ~6 h for composite, one arm per night.
+
+Also fixed repo-wide: every README runbook said `python`, which does not exist on
+this machine (only `python3`), so the copy-paste commands failed. p1 49/49 and
+p2 29/29 still pass after the change.
 
 **The Alpamayo question is settled, and the answer is no.** Not on size — the
 Chain-of-Causation traces are a 150 KB parquet and camera chunks are ~2 GB per 100

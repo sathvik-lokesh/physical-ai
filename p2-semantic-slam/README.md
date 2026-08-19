@@ -192,26 +192,26 @@ build systems that ask them only the second kind of question.
 source /opt/ros/jazzy/setup.bash
 ../harness/recorder/models/fetch_furniture.sh      # Fuel models + texture patch
 
-python ../harness/recorder/record.py scenarios/map_room.json --out-dir data
-python ../harness/recorder/extract_keyframes.py data/map_room/bag \
+python3 ../harness/recorder/record.py scenarios/map_room.json --out-dir data
+python3 ../harness/recorder/extract_keyframes.py data/map_room/bag \
     --out data/map_room --run-id map_room --stall-s 3
-python add_slam_poses.py                           # map->odom o odom->base_footprint
+python3 add_slam_poses.py                           # map->odom o odom->base_footprint
 
 PYTHONPATH=../harness ../harness/sysguard/capped python3 -m vlmrunner.run \
     --manifest data/map_room/manifest.jsonl --task tasks/name_object.json \
     --model llava-phi3 --timeout 600 \
     --out results/map_room.name_object.llava-phi3.jsonl
 
-python semantic_map.py --poses slam                # the numbers above
-python semantic_map.py --poses slam --query "where did you last see the chair"
-python render_map.py --estimates results/estimates.json --out results/map.png
+python3 semantic_map.py --poses slam                # the numbers above
+python3 semantic_map.py --poses slam --query "where did you last see the chair"
+python3 render_map.py --estimates results/estimates.json --out results/map.png
 
 # question -> goal -> drive -> gif
-python save_map.py
-python make_goto_scenario.py --query "where did you last see the chair"
-python ../harness/recorder/record.py scenarios/goto_query.json --out-dir data
-python make_demo_gif.py
-python verify_readme_numbers.py                    # re-derive every number here
+python3 save_map.py
+python3 make_goto_scenario.py --query "where did you last see the chair"
+python3 ../harness/recorder/record.py scenarios/goto_query.json --out-dir data
+python3 make_demo_gif.py
+python3 verify_readme_numbers.py                    # re-derive every number here
 ```
 
 `render_map.py --check` verifies the map geometry and the world->map transform

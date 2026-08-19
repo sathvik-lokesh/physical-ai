@@ -84,9 +84,19 @@ size, different content. Every size check in the world passes it.
 The design numbers above (78.9% / 27.8%, and the keyframe-gap distribution) were
 computed from that mirror before the discrepancy was found, so they are marked
 provisional throughout. `fetch_drivelm.sh` verifies every download against the
-sha256 the Hugging Face API reports for the official repo and refuses to install
-a file that does not match; `build_manifest.py` checks it a second time, because
-a manifest built from the wrong bytes would look entirely normal.
+sha256 the Hugging Face API reports for the official repo, refuses to install a
+file that does not match, and records the API's hash beside the file as
+`v1_1_train_nus.json.sha256`. `build_manifest.py` checks the file against that
+recorded hash a second time, because a manifest built from the wrong bytes would
+look entirely normal.
+
+**The second gate refuses when it has nothing to compare against.** If no hash
+has been recorded and none is pinned in the source, the builder exits rather
+than building — a gate that passes silently when it cannot check is not a gate.
+`--record-hash` asks the HF API directly and writes the sidecar, for a QA file
+that arrived by some route other than `fetch_drivelm.sh`. `--allow-unverified`
+exists only for the synthetic fixture in `selftest.py` and prints a warning;
+nothing built under it may be published.
 
 **Nothing gets published from this project until the numbers are re-derived from
 the hash-verified official file.**
@@ -124,21 +134,92 @@ code, manifests and results — never frames.
 export HF_TOKEN=hf_...                  # read token
 ./fetch_drivelm.sh --images             # 193 MB QA + 3.5 GB images, hash-verified
 
-python build_manifest.py --arm single --n 200
-python build_manifest.py --arm pair   --n 200 --pair-mode composite
+python3 selftest.py                     # 36 checks, no network, no VLM
+python3 build_manifest.py --arm single --n 200
+python3 build_manifest.py --arm pair   --n 200 --pair-mode composite
 
 cd ../harness
-python -m vlmrunner.run \
+python3 -m vlmrunner.run \
   --manifest ../p3-drivelm-eval/data/single/manifest.jsonl \
   --task     ../p3-drivelm-eval/tasks/behavior_single.json \
   --model    llava-phi3 \
   --out      ../p3-drivelm-eval/results/single.llava-phi3.jsonl
 
-python -m scoring.score \
+python3 -m scoring.score \
   --manifest ../p3-drivelm-eval/data/single/manifest.jsonl \
   --results  ../p3-drivelm-eval/results/*.jsonl \
   --out      ../p3-drivelm-eval/results/report
 ```
+
+## Self-test
+
+`selftest.py` runs the whole chain — QA file to manifest to the runner's
+image/prompt resolution to `scoring/score.py` — on a synthetic DriveLM tree it
+builds in a temp dir. No network, no VLM, a couple of seconds:
+
+```bash
+python3 selftest.py      # 36 checks
+```
+
+It exists because a run costs 8–10 hours and the data needs a manual licence
+acceptance before a single byte arrives, so "the pieces do not fit together" is
+the one failure that must not be discovered afterwards. It asserts the joins,
+not the model: that `{dt_s}` reaches the rendered prompt, that the runner can
+resolve every path in a manifest built by the builder, that pair gaps stay in
+the 1.5–3.0 s band, that an unparseable answer scores as wrong instead of
+raising, and — the point of the project — that a predictor answering the
+commonest label every time ties the majority baseline *exactly* while the
+corpus-prior answer never beats it.
+
+Writing it found three defects in code that had already been "dry-run end to
+end": the second hash gate was dead (`OFFICIAL_QA_SHA256` was `None` and the
+`--record-hash` flag that was supposed to fill it did not exist), `--qa`
+repointed the labels but not the images, and the builder could emit truncated
+item ids that collide, which `vlmrunner` rejects outright.
+
+### The two-images arm works, and the two pair formats are not the same experiment
+
+The design above flagged one unknown it could not settle on paper: whether
+`llava-phi3`'s projector accepts two images in a single request at all. A
+four-item smoke run against `llava-phi3` on synthetic road frames settles it —
+it does, and returns well-formed JSON. The token accounting is what makes that
+trustworthy rather than merely plausible:
+
+| arm | images | prompt tokens | wall (warm) |
+|---|---|---|---|
+| pair, composite | 1 | 827 | 92, 122 s |
+| pair, two-images | 2 | 1408 | 174 s |
+
+**Budget: run with `--keep-alive` set, never `0`.** The one two-images item that
+was run with `--keep-alive 0` took **420 s** against 174 s warm, because the flag
+unloads the 3.9 GB model after every request and the next item pays a cold load.
+Over 200 items that is the difference between a 10-hour run and a 23-hour one.
+The 174 s warm figure is itself above this README's 150–180 s estimate for the
+cheaper arm, so budget **~10 h for two-images** and ~6 h for composite, and do
+not schedule both in one night.
+
+The 581-token difference is one more full patch grid, so the second image really
+is embedded rather than accepted and dropped — which is the failure mode that
+would otherwise have produced a clean-looking null result. Both fit inside
+`llava-phi3`'s 4096-token context, so neither arm is silently truncated.
+
+It also shows the two pair formats differ in more than layout. A composite is
+**one** image to the encoder: both frames share a single patch grid, so each
+frame gets half the visual resolution. The two-images arm spends a full grid per
+frame. So the comparison is not purely "how the frames are arranged" — it is
+also "how many pixels each frame is worth", and a difference between the arms
+cannot be attributed to layout alone.
+
+The composite arm carries a second, sharper cost on real data. nuScenes
+`CAM_FRONT` frames are 1600x900, so a side-by-side composite is roughly 3.6:1,
+and a LLaVA-style encoder takes a square input. Each frame therefore reaches the
+model squashed to about half its width. Fine detail — lane markings, the swing
+of a kerb — is exactly what the steering label depends on, and it is the first
+thing that squash destroys. This is a reason to run both formats, not a reason
+to drop either: if the composite arm underperforms, this is the first
+explanation to rule out before concluding anything about temporal reasoning. Given p1's finding that format moved
+results more than the model did, that distinction belongs in the writeup rather
+than in a footnote.
 
 ## Cost
 

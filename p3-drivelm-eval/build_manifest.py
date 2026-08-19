@@ -54,7 +54,16 @@ QA_FILE = DRIVELM / "v1_1_train_nus.json"
 # being served by at least one ungated mirror, so identity is checked by hash.
 # `fetch_drivelm.sh` verifies this on download; this is the second gate, here
 # because a manifest built from the wrong bytes would look completely normal.
-OFFICIAL_QA_SHA256 = None  # filled in by --record-hash once fetched officially
+#
+# Left None until the official file has actually been fetched once. Until then
+# the expected hash comes from the sidecar `<qa>.sha256` that fetch_drivelm.sh
+# writes with the value the HF API reported, or from `--record-hash`, which asks
+# the API directly. If neither exists this script refuses to build, because a
+# gate that silently passes when it has nothing to compare against is not a gate
+# — which is what this constant being permanently None used to mean.
+OFFICIAL_QA_SHA256 = None  # pin here once known; see --record-hash
+
+HF_REPO = "OpenDriveLab/DriveLM"
 
 BEHAVIOR_RE = re.compile(
     r"^The ego vehicle is (.+?)\.\s*The ego vehicle is (.+?)\.?\s*$"
@@ -88,6 +97,52 @@ def sha256_file(path: Path) -> str:
         for block in iter(lambda: f.read(1 << 20), b""):
             h.update(block)
     return h.hexdigest()
+
+
+def sidecar(qa_path: Path) -> Path:
+    """Where fetch_drivelm.sh records the hash the HF API reported."""
+    return qa_path.with_name(qa_path.name + ".sha256")
+
+
+def api_sha256(name: str) -> str:
+    """Ask the Hugging Face API for the official file's sha256 (its LFS oid)."""
+    import urllib.error
+    import urllib.request
+
+    token = os.environ.get("HF_TOKEN")
+    if not token:
+        raise SystemExit("HF_TOKEN is not set; cannot ask the API for the official hash")
+    req = urllib.request.Request(
+        f"https://huggingface.co/api/datasets/{HF_REPO}/tree/main",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            tree = json.load(r)
+    except urllib.error.HTTPError as e:
+        raise SystemExit(
+            f"HF API returned {e.code}: accept the licence at "
+            f"https://huggingface.co/datasets/{HF_REPO} and check the token"
+        ) from e
+    for entry in tree:
+        if entry.get("path") == name:
+            oid = (entry.get("lfs") or {}).get("oid", "")
+            if not oid:
+                raise SystemExit(f"{name}: the API reports no LFS sha256 for it")
+            return oid
+    raise SystemExit(f"{name}: not found in {HF_REPO}")
+
+
+def expected_sha256(qa_path: Path) -> str | None:
+    """The hash to check the QA file against: pinned constant, else sidecar."""
+    if OFFICIAL_QA_SHA256:
+        return OFFICIAL_QA_SHA256
+    side = sidecar(qa_path)
+    if side.exists():
+        text = side.read_text().split()
+        if text:
+            return text[0]
+    return None
 
 
 def frame_timestamp(image_path: str) -> float:
@@ -234,16 +289,50 @@ def main() -> int:
     p.add_argument("--allow-missing-images", action="store_true",
                    help="build the manifest before the 3.5 GB image zip is "
                         "fetched; the runner will refuse to run it")
+    p.add_argument("--record-hash", action="store_true",
+                   help="ask the HF API for the official sha256, check the local "
+                        "QA file against it, and record it beside the file")
+    p.add_argument("--allow-unverified", action="store_true",
+                   help="build without a hash to check against. Only for synthetic "
+                        "fixtures — never for a manifest whose numbers get published")
     args = p.parse_args()
 
     qa_path = Path(args.qa)
     if not qa_path.exists():
         print(f"missing {qa_path} — run ./fetch_drivelm.sh first", file=sys.stderr)
         return 2
-    if OFFICIAL_QA_SHA256 and sha256_file(qa_path) != OFFICIAL_QA_SHA256:
-        print(f"{qa_path} does not match the official DriveLM sha256 — refusing "
-              f"to build a manifest from it", file=sys.stderr)
-        return 3
+
+    if args.record_hash:
+        want = api_sha256(qa_path.name)
+        got = sha256_file(qa_path)
+        if got != want:
+            print(f"{qa_path} sha256 {got}\n  does not match the official "
+                  f"{want}\n  refusing to record a hash for the wrong file",
+                  file=sys.stderr)
+            return 3
+        sidecar(qa_path).write_text(f"{want}  {qa_path.name}\n")
+        print(f"recorded official sha256 -> {sidecar(qa_path)}")
+
+    # The second gate. It only means anything if there is something to compare
+    # against, so "no known hash" is a refusal rather than a pass.
+    want = expected_sha256(qa_path)
+    if want is None:
+        if not args.allow_unverified:
+            print(f"no official sha256 to check {qa_path} against.\n"
+                  f"  run ./fetch_drivelm.sh (it records one), or --record-hash "
+                  f"with HF_TOKEN set.\n"
+                  f"  An ungated mirror serves a same-length, different-content "
+                  f"copy of this file, so this check is the point.",
+                  file=sys.stderr)
+            return 3
+        print("WARNING: building without a hash check — do not publish these numbers")
+    else:
+        got = sha256_file(qa_path)
+        if got != want:
+            print(f"{qa_path} does not match the official DriveLM sha256 — refusing "
+                  f"to build a manifest from it\n  expected {want}\n  got      {got}",
+                  file=sys.stderr)
+            return 3
 
     frames = eligible(load_frames(qa_path), args.arm)
     if not frames:
@@ -256,13 +345,19 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest = out_dir / "manifest.jsonl"
 
+    # Images live in a `nuscenes/` tree beside the QA file, because that is how
+    # the zip unpacks and how `image_paths` are written relative to it. Derived
+    # from --qa rather than from the module constant, so that pointing --qa at a
+    # second copy repoints its images too instead of half-repointing the build.
+    image_root = qa_path.parent
+
     missing: list[str] = []
     rows = []
     for row in picked:
-        image = DRIVELM / row["image"]
+        image = image_root / row["image"]
         images = [image]
         if args.arm == "pair":
-            images.insert(0, DRIVELM / row["prev"]["image"])
+            images.insert(0, image_root / row["prev"]["image"])
         for path in images:
             if not path.exists():
                 missing.append(str(path))
@@ -308,6 +403,22 @@ def main() -> int:
         print(f"{len(missing)} image(s) not found, e.g. {missing[0]}", file=sys.stderr)
         print("run ./fetch_drivelm.sh --images", file=sys.stderr)
         return 4
+
+    # Ids are truncated tokens because a full 32-hex pair is unreadable in a
+    # progress line. Truncation can collide, and vlmrunner refuses a manifest
+    # with duplicate ids -- so widen here rather than emit one it will reject.
+    width = 8
+    while width <= 32:
+        ids = [f"{r['meta']['scene'][:width]}_{r['meta']['frame'][:width]}" for r in rows]
+        if len(set(ids)) == len(ids):
+            break
+        width += 4
+    else:
+        raise SystemExit("scene/frame tokens are not unique even at full length")
+    if width > 8:
+        print(f"note: widened item ids to {width} hex chars to keep them unique")
+    for item, new_id in zip(rows, ids):
+        item["id"] = new_id
 
     with open(manifest, "w") as f:
         for item in rows:
