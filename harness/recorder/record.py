@@ -33,6 +33,8 @@ import sys
 import time
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]  # scenario paths are relative to the repo
+
 HERE = Path(__file__).resolve().parent
 LAUNCH_FILE = HERE / "launch" / "rollout.launch.py"
 DRIVE_SCRIPT = HERE / "drive.py"
@@ -176,11 +178,11 @@ def record(args) -> int:
         f"yaw:={spawn.get('yaw', 0.0)}",
     ]
     if scenario.get("world"):
-        launch_cmd.append(f"world:={scenario['world']}")
+        launch_cmd.append(f"world:={REPO_ROOT / scenario['world']}")
     if scenario.get("map"):
-        launch_cmd.append(f"map:={scenario['map']}")
+        launch_cmd.append(f"map:={REPO_ROOT / scenario['map']}")
     if scenario.get("params_file"):
-        launch_cmd.append(f"params_file:={scenario['params_file']}")
+        launch_cmd.append(f"params_file:={REPO_ROOT / scenario['params_file']}")
 
     print(f"[record] run     : {run_id}")
     print(f"[record] scenario: {scenario.get('label', '')}")
